@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+}
+
+group 'io.github.itsusinn.quiet'
+version '1.0-SNAPSHOT'
+
+def lwjglVersion = "3.2.3"
+def osWindows = "windows"
+def osLinux = "linux"
+def os = osLinux
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    implementation 'org.lwjgl:lwjgl-opengl:3.2.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+
+    implementation("org.lwjgl:lwjgl:$lwjglVersion")
+    implementation("org.lwjgl:lwjgl:$lwjglVersion:natives-$os")
+    implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion")
+    implementation("org.lwjgl:lwjgl-glfw:$lwjglVersion:natives-$os")
+    implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion")
+    implementation("org.lwjgl:lwjgl-opengl:$lwjglVersion:natives-$os")
+
+}
+
+test {
+    useJUnitPlatform()
+}
