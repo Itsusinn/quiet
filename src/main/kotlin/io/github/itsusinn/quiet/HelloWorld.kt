@@ -1,23 +1,28 @@
 package io.github.itsusinn.quiet
 
-import org.lwjgl.Version
+import io.github.itsusinn.extension.lwjgl.LwjglVersion
+import io.github.itsusinn.extension.lwjgl.Window
+import io.github.itsusinn.extension.lwjgl.createWindow
+import io.github.itsusinn.extension.lwjgl.setCurrentContext
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil
 
 class HelloWorld {
+   lateinit var window:Window
    // The window handle
-   private var window: Long = 0
+   private val windowHandle: Long by lazy { window.handle }
    fun run() {
-      println("Hello LWJGL " + Version.getVersion() + "!")
+      println("Hello LWJGL $LwjglVersion!")
       init()
+
+      //loop() is a blocking method
       loop()
 
       // Free the window callbacks and destroy the window
-      Callbacks.glfwFreeCallbacks(window)
-      GLFW.glfwDestroyWindow(window)
+      window.freeCallbacks()
+      window.destroy()
 
       // Terminate GLFW and free the error callback
       GLFW.glfwTerminate()
@@ -38,43 +43,40 @@ class HelloWorld {
       GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE) // the window will be resizable
 
       // Create the window
-      window = GLFW.glfwCreateWindow(300, 300, "Hello World!", MemoryUtil.NULL, MemoryUtil.NULL)
-      if (window == MemoryUtil.NULL) throw RuntimeException("Failed to create the GLFW window")
+      window = createWindow(300, 300, "Hello World!")
 
       // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-      GLFW.glfwSetKeyCallback(
-         window
-      ) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
-         if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE) GLFW.glfwSetWindowShouldClose(
-            window,
-            true
-         ) // We will detect this in the rendering loop
+      window.setKeyCallback {
+         if (it.key == GLFW.GLFW_KEY_ESCAPE && it.action == GLFW.GLFW_RELEASE) {
+            window.shouldClose = true
+         }
+         // We will detect this in the rendering loop
       }
+
       MemoryStack.stackPush().use { stack ->
          val pWidth = stack.mallocInt(1) // int*
          val pHeight = stack.mallocInt(1) // int*
 
          // Get the window size passed to glfwCreateWindow
-         GLFW.glfwGetWindowSize(window, pWidth, pHeight)
+         GLFW.glfwGetWindowSize(windowHandle, pWidth, pHeight)
 
          // Get the resolution of the primary monitor
          val vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
 
          // Center the window
          GLFW.glfwSetWindowPos(
-            window,
+            windowHandle,
             (vidmode!!.width() - pWidth[0]) / 2,
             (vidmode.height() - pHeight[0]) / 2
          )
       }
 
       // Make the OpenGL context current
-      GLFW.glfwMakeContextCurrent(window)
+      setCurrentContext(window)
       // Enable v-sync
       GLFW.glfwSwapInterval(1)
-
       // Make the window visible
-      GLFW.glfwShowWindow(window)
+      GLFW.glfwShowWindow(windowHandle)
    }
 
    private fun loop() {
@@ -90,9 +92,9 @@ class HelloWorld {
 
       // Run the rendering loop until the user has attempted to close
       // the window or has pressed the ESCAPE key.
-      while (!GLFW.glfwWindowShouldClose(window)) {
+      while (!window.shouldClose) {
          GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
-         GLFW.glfwSwapBuffers(window) // swap the color buffers
+         GLFW.glfwSwapBuffers(windowHandle) // swap the color buffers
 
          // Poll for window events. The key callback above will only be
          // invoked during this call.
