@@ -1,19 +1,26 @@
 package io.github.itsusinn.quiet
 
-import io.github.itsusinn.extension.lwjgl.LwjglVersion
-import io.github.itsusinn.extension.lwjgl.Window
-import io.github.itsusinn.extension.lwjgl.createWindow
-import io.github.itsusinn.extension.lwjgl.setCurrentContext
+import io.github.itsusinn.extension.org.lwjgl.LwjglVersion
+import io.github.itsusinn.extension.org.lwjgl.Window
+import io.github.itsusinn.extension.org.lwjgl.createWindow
+import io.github.itsusinn.extension.org.lwjgl.setCurrentContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.system.MemoryStack
+import kotlin.coroutines.CoroutineContext
 
-class HelloWorld {
-   lateinit var window:Window
+class HelloWorld:CoroutineScope {
+   lateinit var window: Window
    // The window handle
    private val windowHandle: Long by lazy { window.handle }
-   fun run() {
+
+   override val coroutineContext: CoroutineContext
+      get() = window.coroutineContext
+
+   fun run() = async{
       println("Hello LWJGL $LwjglVersion!")
       init()
 
@@ -34,19 +41,11 @@ class HelloWorld {
       // will print the error message in System.err.
       GLFWErrorCallback.createPrint(System.err).set()
 
-      // Initialize GLFW. Most GLFW functions will not work before doing this.
-      check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
-
-      // Configure GLFW
-      GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
-      GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
-      GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE) // the window will be resizable
-
       // Create the window
-      window = createWindow(300, 300, "Hello World!")
+      window = createWindow("ad",300, 300, "Hello World!")
 
       // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-      window.setKeyCallback {
+      window.setKeyboardCallback {
          if (it.key == GLFW.GLFW_KEY_ESCAPE && it.action == GLFW.GLFW_RELEASE) {
             window.shouldClose = true
          }
@@ -61,14 +60,10 @@ class HelloWorld {
          GLFW.glfwGetWindowSize(windowHandle, pWidth, pHeight)
 
          // Get the resolution of the primary monitor
-         val vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
-
+         val videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
          // Center the window
-         GLFW.glfwSetWindowPos(
-            windowHandle,
-            (vidmode!!.width() - pWidth[0]) / 2,
-            (vidmode.height() - pHeight[0]) / 2
-         )
+         window.setWindowPos((videoMode!!.width() - pWidth[0]) / 2, (videoMode.height() - pHeight[0]) / 2)
+
       }
 
       // Make the OpenGL context current
@@ -79,7 +74,7 @@ class HelloWorld {
       GLFW.glfwShowWindow(windowHandle)
    }
 
-   private fun loop() {
+   private fun loop() = async{
       // This line is critical for LWJGL's interoperation with GLFW's
       // OpenGL context, or any context that is managed externally.
       // LWJGL detects the context that is current in the current thread,
