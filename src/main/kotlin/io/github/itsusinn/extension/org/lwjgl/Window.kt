@@ -1,6 +1,6 @@
 package io.github.itsusinn.extension.org.lwjgl
 
-import io.github.itsusinn.extension.data.WindowSize
+import io.github.itsusinn.extension.org.lwjgl.unit.WindowSize
 import io.github.itsusinn.extension.org.lwjgl.event.  KeyboardEvent
 import io.github.itsusinn.extension.java.thread.SingleThread
 import kotlinx.coroutines.CoroutineScope
@@ -8,7 +8,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.system.MemoryStack
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
@@ -55,10 +54,6 @@ class Window(
    init {
       runBlocking {
          async {
-
-            // Initialize GLFW. Most GLFW functions will not work before doing this.
-            check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
-
             // Configure GLFW
             GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation

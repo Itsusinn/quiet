@@ -1,3 +1,3 @@
-package io.github.itsusinn.extension.data
+package io.github.itsusinn.extension.org.lwjgl.unit
 
 data class WindowSize(val width:Int, val height:Int)

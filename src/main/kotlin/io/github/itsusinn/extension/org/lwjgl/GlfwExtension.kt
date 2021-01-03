@@ -1,25 +1,24 @@
 package io.github.itsusinn.extension.org.lwjgl
 
+import io.github.itsusinn.extension.async.annotation.Blocking
+import io.github.itsusinn.extension.async.annotation.NonBlocking
 import io.github.itsusinn.extension.java.thread.SingleThread
+import io.github.itsusinn.extension.org.lwjgl.event.GLFWErrorEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWVidMode
-import kotlin.collections.ArrayList
-import kotlin.coroutines.CoroutineContext
-
-//save reference of some objects to escape from the gc
-private val GC_Root = ArrayList<Any>()
 
 object GlfwManager:CoroutineScope{
    val logicalMainThread = SingleThread.create("lwjgl")
-   override val coroutineContext: CoroutineContext
-      get() = logicalMainThread.coroutineContext
+   override val coroutineContext = logicalMainThread.coroutineContext
 
    /**
+    * Returns the current video mode of the specified monitor
     * dynamic evaluation
     */
+   @Blocking
    val videoMode: GLFWVidMode
       get() = runBlocking<GLFWVidMode> {
          val videoMode = async {
@@ -30,12 +29,42 @@ object GlfwManager:CoroutineScope{
       }
 
    /**
+    * Initializes the GLFW library
+    * @throws IllegalStateException if Unable to initialize GLFW
+    */
+   @Blocking
+   fun init() = runBlocking {
+      async {
+         // Initialize GLFW. Most GLFW functions will not work before doing this.
+         check(GLFW.glfwInit()) { "Unable to initialize GLFW" }
+      }
+   }
+   /**
     * Destroys all remaining windows and cursors,
     * restores any modified gamma ramps and frees any other allocated resources.
     */
+   @Blocking
    fun terminate() = runBlocking<Unit> {
-      async{ GLFW.glfwTerminate() }
+      async{
+         GLFW.glfwTerminate()
+         setErrorCallBack(null)
+      }
       logicalMainThread.shutdown()
+   }
+
+   /**
+    * Sets the error callback,
+    * which is called with an error code and a human-readable description each time a GLFW error occurs.
+    */
+   @NonBlocking
+   fun setErrorCallBack(cbfun:((GLFWErrorEvent) -> Unit)?) = async{
+      if (cbfun == null){
+         GLFW.glfwSetErrorCallback(null)!!.free()
+         return@async
+      }
+      GLFW.glfwSetErrorCallback { errorCode:Int,description:Long ->
+         cbfun(GLFWErrorEvent.create(errorCode, description))
+      }!!.set()
    }
 
    /**
@@ -44,6 +73,7 @@ object GlfwManager:CoroutineScope{
     * invoked during this call.
     */
    fun pollEvents() = async { GLFW.glfwPollEvents() }
+
 }
 object GlfwConfiguration{
    fun init(){

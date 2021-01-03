@@ -19,26 +19,31 @@ class HelloWorld:CoroutineScope {
    fun run() {
       println("Hello LWJGL $LwjglVersion!")
       init()
-
       //loop() is a blocking method
       loop()
-
       // Free the window callbacks and destroy the window
       window.freeCallbacks()
       window.destroy()
-
       // Terminate GLFW and free the error callback
       GlfwManager.terminate()
-      GLFW.glfwSetErrorCallback(null)!!.free()
    }
 
    private fun init() {
-      // Setup an error callback. The default implementation
-      // will print the error message in System.err.
-      GLFWErrorCallback.createPrint(System.err).set()
+      // Setup an error callback.
+      GlfwManager.setErrorCallBack {
+         System.err.printf("[LWJGL] %s error\n", it.error)
+         System.err.println("\tDescription : ${it.description}")
+         System.err.println("\tStacktrace  :")
+         val stack = it.stack
+         for (i in 4 until stack.size) {
+            System.err.print("\t\t")
+            System.err.println(stack[i].toString())
+         }
+      }
+      GlfwManager.init()
 
       // Create the window
-      window = createWindow("ad",300, 300, "Hello World!")
+      window = createWindow("demo",300, 300, "Hello World!")
 
       // Setup a key callback. It will be called every time a key is pressed, repeated or released.
       window.setKeyboardCallback {
