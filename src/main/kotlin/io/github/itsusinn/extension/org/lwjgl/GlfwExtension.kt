@@ -33,8 +33,9 @@ object GlfwManager:CoroutineScope{
     * Destroys all remaining windows and cursors,
     * restores any modified gamma ramps and frees any other allocated resources.
     */
-   fun terminate() = runBlocking {
+   fun terminate() = runBlocking<Unit> {
       async{ GLFW.glfwTerminate() }
+      logicalMainThread.shutdown()
    }
 
    /**

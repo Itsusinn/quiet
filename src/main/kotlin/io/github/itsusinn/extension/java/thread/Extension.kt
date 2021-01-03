@@ -14,6 +14,10 @@ class SingleThread private constructor(
    val executor: ExecutorService = Executors.newSingleThreadExecutor()
    override val coroutineContext = executor.asCoroutineDispatcher()
 
+   fun shutdown() {
+      executor.shutdown()
+   }
+
    companion object Factory{
       fun create(name: String): SingleThread {
          return SingleThread(name)
