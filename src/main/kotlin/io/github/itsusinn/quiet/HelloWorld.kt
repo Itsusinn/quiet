@@ -1,9 +1,6 @@
 package io.github.itsusinn.quiet
 
-import io.github.itsusinn.extension.org.lwjgl.LwjglVersion
-import io.github.itsusinn.extension.org.lwjgl.Window
-import io.github.itsusinn.extension.org.lwjgl.createWindow
-import io.github.itsusinn.extension.org.lwjgl.setCurrentContext
+import io.github.itsusinn.extension.org.lwjgl.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import org.lwjgl.glfw.*
@@ -17,10 +14,9 @@ class HelloWorld:CoroutineScope {
    // The window handle
    private val windowHandle: Long by lazy { window.handle }
 
-   override val coroutineContext: CoroutineContext
-      get() = window.coroutineContext
+   override val coroutineContext by lazy { window.coroutineContext }
 
-   fun run() = async{
+   fun run() {
       println("Hello LWJGL $LwjglVersion!")
       init()
 
@@ -32,7 +28,7 @@ class HelloWorld:CoroutineScope {
       window.destroy()
 
       // Terminate GLFW and free the error callback
-      GLFW.glfwTerminate()
+      GlfwManager.terminate()
       GLFW.glfwSetErrorCallback(null)!!.free()
    }
 
@@ -51,30 +47,24 @@ class HelloWorld:CoroutineScope {
          }
          // We will detect this in the rendering loop
       }
-
-      MemoryStack.stackPush().use { stack ->
-         val pWidth = stack.mallocInt(1) // int*
-         val pHeight = stack.mallocInt(1) // int*
-
-         // Get the window size passed to glfwCreateWindow
-         GLFW.glfwGetWindowSize(windowHandle, pWidth, pHeight)
-
-         // Get the resolution of the primary monitor
-         val videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor())
-         // Center the window
-         window.setWindowPos((videoMode!!.width() - pWidth[0]) / 2, (videoMode.height() - pHeight[0]) / 2)
-
-      }
+      val windowSize = window.getWindowSize()
+      // Get the resolution of the primary monitor
+      val videoMode = GlfwManager.videoMode
+      // Center the window
+      window.setWindowPos(
+         (videoMode.width() - windowSize.width) / 2,
+         (videoMode.height() - windowSize.height) / 2
+      )
 
       // Make the OpenGL context current
       setCurrentContext(window)
       // Enable v-sync
       GLFW.glfwSwapInterval(1)
       // Make the window visible
-      GLFW.glfwShowWindow(windowHandle)
+      window.show()
    }
 
-   private fun loop() = async{
+   private fun loop()  {
       // This line is critical for LWJGL's interoperation with GLFW's
       // OpenGL context, or any context that is managed externally.
       // LWJGL detects the context that is current in the current thread,
@@ -91,9 +81,7 @@ class HelloWorld:CoroutineScope {
          GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
          GLFW.glfwSwapBuffers(windowHandle) // swap the color buffers
 
-         // Poll for window events. The key callback above will only be
-         // invoked during this call.
-         GLFW.glfwPollEvents()
+         GlfwManager.pollEvents()
       }
    }
 }

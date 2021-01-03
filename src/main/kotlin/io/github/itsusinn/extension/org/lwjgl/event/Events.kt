@@ -5,7 +5,3 @@ data class KeyboardEvent(
    val scancode: Int,
    val action: Int,
    val mods: Int)
-
-fun interface KeyboardCallback{
-   fun handle(keyboardEvent: KeyboardEvent)
-}

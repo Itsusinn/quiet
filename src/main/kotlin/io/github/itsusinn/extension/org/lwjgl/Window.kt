@@ -1,13 +1,15 @@
 package io.github.itsusinn.extension.org.lwjgl
 
-import io.github.itsusinn.extension.org.lwjgl.event.KeyboardCallback
-import io.github.itsusinn.extension.org.lwjgl.event.KeyboardEvent
+import io.github.itsusinn.extension.data.WindowSize
+import io.github.itsusinn.extension.org.lwjgl.event.  KeyboardEvent
 import io.github.itsusinn.extension.java.thread.SingleThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFWVidMode
+import org.lwjgl.system.MemoryStack
 import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
@@ -43,9 +45,8 @@ class Window(
    val title:CharSequence,
    val monitor:Long,
    val share:Long,
+   private val logicalMainThread: SingleThread = GlfwManager.logicalMainThread
    ): CoroutineScope {
-   private val logicalMainThread = SingleThread.create(identifier)
-
    override val coroutineContext: CoroutineContext
       get() = logicalMainThread.coroutineContext
 
@@ -91,16 +92,37 @@ class Window(
    fun destroy() = async { GLFW.glfwDestroyWindow(handle) }
 
    /**
-    * Sets the position, in screen coordinates, of the upper-left corner of the content area of the specified windowed mode window.
+    * Sets the position, in screen coordinates, of the upper-left corner of the content area of the windowed mode window.
     * If the window is a full screen window, this function does nothing.
     */
    fun setWindowPos(xPos:Int, yPos:Int) = async { GLFW.glfwSetWindowPos(handle, xPos, yPos) }
 
    /**
+    * Retrieves the size, in screen coordinates, of the content area of the specified window.
+    */
+   fun getWindowSize() = runBlocking<WindowSize>{
+      async<WindowSize> {
+         MemoryStack.stackPush().use { stack ->
+            val pWidth = stack.mallocInt(1) // int*
+            val pHeight = stack.mallocInt(1) // int*
+            // Get the window size passed to glfwCreateWindow
+            GLFW.glfwGetWindowSize(handle, pWidth, pHeight)
+            return@async WindowSize(pWidth[0],pHeight[0])
+         }
+      }.await()
+   }
+
+   /**
     * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
     */
-   fun setKeyboardCallback(keyboardCallback: KeyboardCallback) =
+   fun setKeyboardCallback(keyboardCallback: (KeyboardEvent) -> Unit) = async {
       GLFW.glfwSetKeyCallback(handle) { _, key, scancode, action, mods ->
-         keyboardCallback.handle(KeyboardEvent(key, scancode, action, mods))
+         keyboardCallback(KeyboardEvent(key, scancode, action, mods))
       }
+   }
+
+   /**
+    * Makes the window visible if it was previously hidden.
+    */
+   fun show() = async { GLFW.glfwShowWindow(handle) }
 }
