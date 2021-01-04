@@ -3,7 +3,6 @@ package io.github.itsusinn.extension.org.lwjgl.event
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.system.APIUtil
 import org.lwjgl.system.MemoryUtil
-import org.lwjgl.system.NativeType
 
 data class KeyboardEvent(
    val key: Int,

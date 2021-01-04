@@ -3,7 +3,6 @@ package io.github.itsusinn.extension.java.thread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.util.concurrent.*
-import kotlin.coroutines.CoroutineContext
 
 fun Thread(name:String,runnable: Runnable) = Thread(runnable,name)
 

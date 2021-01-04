@@ -1,8 +1,8 @@
 package io.github.itsusinn.extension.org.lwjgl
 
-import io.github.itsusinn.extension.org.lwjgl.unit.WindowSize
-import io.github.itsusinn.extension.org.lwjgl.event.  KeyboardEvent
 import io.github.itsusinn.extension.java.thread.SingleThread
+import io.github.itsusinn.extension.org.lwjgl.event.KeyboardEvent
+import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
