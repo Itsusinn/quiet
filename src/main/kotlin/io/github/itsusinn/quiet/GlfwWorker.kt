@@ -1,9 +1,10 @@
-package io.github.itsusinn.extension.org.lwjgl
+package io.github.itsusinn.quiet
 
-import io.github.itsusinn.extension.org.lwjgl.listener.MouseListener
+import io.github.itsusinn.extension.org.lwjgl.*
+import io.github.itsusinn.quiet.listener.MouseListener
 import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
+import io.github.itsusinn.quiet.listener.KeyboardListener
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -15,7 +16,7 @@ import kotlin.coroutines.CoroutineContext
 private val logger = KotlinLogging.logger {  }
 
 class GlfwWorker:CoroutineScope{
-   private val thread = SingleThreadCoroutineScope("OpenglContext")
+   private val thread = SingleThreadCoroutineScope("glfw-worker")
    override val coroutineContext: CoroutineContext
       get() = thread.coroutineContext
 
@@ -34,7 +35,7 @@ class GlfwWorker:CoroutineScope{
          GlfwManager.init()
       }
    }
-   private val window:GlfwWindow = createWindow(
+   private val window: GlfwWindow = createWindow(
       "demo",
       300,
       300,
@@ -45,13 +46,9 @@ class GlfwWorker:CoroutineScope{
       println("Hello LWJGL $LwjglVersion!")
 
       // Setup a key callback. It will be called every time a key is pressed, repeated or released.
-      window.setKeyboardCallback {
-         if (it.key == GLFW.GLFW_KEY_ESCAPE && it.action == GLFW.GLFW_RELEASE) {
-            window.shouldClose = true
-         }
-         // We will detect this in the rendering loop
-      }
-      GLFW.glfwSetCursorPosCallback(window.handle,MouseListener::mousePosCallback)
+      window.setKeyboardCallback(KeyboardListener::keyboardCallback)
+      window.setCursorPosCallback(MouseListener::mousePosCallback)
+
 
       val windowSize = window.getWindowSize()
       // Get the resolution of the primary monitor

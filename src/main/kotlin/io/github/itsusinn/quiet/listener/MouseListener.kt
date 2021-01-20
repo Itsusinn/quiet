@@ -1,4 +1,4 @@
-package io.github.itsusinn.extension.org.lwjgl.listener
+package io.github.itsusinn.quiet.listener
 
 import io.github.itsusinn.extension.org.lwjgl.GlfwWindow
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
@@ -28,7 +28,7 @@ object MouseListener {
    }
 
    fun mousePosCallback(
-      window: Long,
+      window: GlfwWindow,
       xpos:Double,
       ypos:Double
    ){
@@ -41,7 +41,7 @@ object MouseListener {
    }
 
    fun mouseButtonCallback(
-      window: Long,
+      window: GlfwWindow,
       button:Int,
       action:Int,
       mods:Int

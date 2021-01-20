@@ -1,11 +1,9 @@
 package io.github.itsusinn.extension.org.lwjgl
 
 import io.github.itsusinn.extension.org.lwjgl.callback.CursorPosCallback
-import io.github.itsusinn.extension.org.lwjgl.callback.KeyCallback
-import io.github.itsusinn.extension.org.lwjgl.event.KeyboardEvent
+import io.github.itsusinn.extension.org.lwjgl.callback.KeyboardCallback
 import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.Callbacks
@@ -106,9 +104,9 @@ class GlfwWindow(
     * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
     */
    suspend fun setKeyboardCallback(
-      keyCallback: KeyCallback?
+      keyboardCallback: KeyboardCallback?
    ) = withContext(coroutineContext){
-      if (keyCallback == null){
+      if (keyboardCallback == null){
          GLFW.glfwSetKeyCallback(handle,null)
          return@withContext
       }
@@ -119,7 +117,7 @@ class GlfwWindow(
             action: Int,
             mods: Int ->
          if (handle!=this@GlfwWindow.handle) return@cb
-         keyCallback.invoke(key, scancode, action, mods)
+         keyboardCallback.invoke(this@GlfwWindow,key, scancode, action, mods)
       }
    }
    suspend fun setCursorPosCallback(
@@ -134,7 +132,7 @@ class GlfwWindow(
             xpos: Double,
             ypos: Double ->
          if (handle!=this@GlfwWindow.handle) return@cb
-         cursorPosCallback.invoke(xpos,ypos)
+         cursorPosCallback.invoke(this@GlfwWindow,xpos,ypos)
       }
    }
 
