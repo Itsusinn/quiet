@@ -1,5 +1,7 @@
 package io.github.itsusinn.extension.org.lwjgl
 
+import io.github.itsusinn.extension.org.lwjgl.callback.CursorPosCallback
+import io.github.itsusinn.extension.org.lwjgl.callback.KeyCallback
 import io.github.itsusinn.extension.org.lwjgl.event.KeyboardEvent
 import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
 import kotlinx.coroutines.CoroutineScope
@@ -104,10 +106,35 @@ class GlfwWindow(
     * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
     */
    suspend fun setKeyboardCallback(
-      keyboardCallback: (KeyboardEvent) -> Unit
+      keyCallback: KeyCallback?
    ) = withContext(coroutineContext){
-      GLFW.glfwSetKeyCallback(handle) { _, key, scancode, action, mods ->
-         keyboardCallback(KeyboardEvent(key, scancode, action, mods))
+      if (keyCallback == null){
+         GLFW.glfwSetKeyCallback(handle,null)
+         return@withContext
+      }
+      GLFW.glfwSetKeyCallback(handle) cb@{
+            handle:Long,
+            key: Int,
+            scancode: Int,
+            action: Int,
+            mods: Int ->
+         if (handle!=this@GlfwWindow.handle) return@cb
+         keyCallback.invoke(key, scancode, action, mods)
+      }
+   }
+   suspend fun setCursorPosCallback(
+      cursorPosCallback:CursorPosCallback?
+   ) = withContext(coroutineContext){
+      if (cursorPosCallback == null){
+         GLFW.glfwSetCursorPosCallback(handle,null)
+         return@withContext
+      }
+      GLFW.glfwSetCursorPosCallback(handle) cb@{
+            handle:Long,
+            xpos: Double,
+            ypos: Double ->
+         if (handle!=this@GlfwWindow.handle) return@cb
+         cursorPosCallback.invoke(xpos,ypos)
       }
    }
 

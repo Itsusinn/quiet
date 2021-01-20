@@ -11,6 +11,7 @@ object GlfwManager: CoroutineScope{
    override val coroutineContext: CoroutineContext
       get() = thread.coroutineContext
 
+
    /**
     * Returns the current video mode of the specified monitor
     * dynamic evaluation
@@ -46,10 +47,10 @@ object GlfwManager: CoroutineScope{
     */
    suspend fun setErrorCallBack(
       callback:((GLFWErrorEvent) -> Unit)?
-   ) = withContext(coroutineContext){
+   ) {
       if (callback == null){
          GLFW.glfwSetErrorCallback(null)?.free()
-         return@withContext
+         return
       }
       GLFW.glfwSetErrorCallback { errorCode:Int,description:Long ->
          callback(GLFWErrorEvent.create(errorCode, description))

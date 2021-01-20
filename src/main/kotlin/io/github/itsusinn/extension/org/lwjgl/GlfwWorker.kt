@@ -1,8 +1,10 @@
 package io.github.itsusinn.extension.org.lwjgl
 
+import io.github.itsusinn.extension.org.lwjgl.listener.MouseListener
 import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.lwjgl.glfw.*
@@ -17,13 +19,31 @@ class GlfwWorker:CoroutineScope{
    override val coroutineContext: CoroutineContext
       get() = thread.coroutineContext
 
-   private lateinit var window:GlfwWindow
+   init {
+      runBlocking {
+         // Setup an error callback.
+         GlfwManager.setErrorCallBack {
+            logger.error { "[LWJGL] ${it.error} error\n" }
+            logger.error { "\tDescription : ${it.description}" }
+            logger.error { "\tStacktrace  :" }
+            val stack = it.stack
+            for (i in 6 until stack.size) {
+               logger.error { "\t\t${stack[i].toString()}" }
+            }
+         }
+         GlfwManager.init()
+      }
+   }
+   private val window:GlfwWindow = createWindow(
+      "demo",
+      300,
+      300,
+      "Hello World!"
+   )
 
    suspend fun run() = withContext(coroutineContext) {
       println("Hello LWJGL $LwjglVersion!")
-      init()
 
-      window = createWindow("demo",300, 300, "Hello World!")
       // Setup a key callback. It will be called every time a key is pressed, repeated or released.
       window.setKeyboardCallback {
          if (it.key == GLFW.GLFW_KEY_ESCAPE && it.action == GLFW.GLFW_RELEASE) {
@@ -31,6 +51,8 @@ class GlfwWorker:CoroutineScope{
          }
          // We will detect this in the rendering loop
       }
+      GLFW.glfwSetCursorPosCallback(window.handle,MouseListener::mousePosCallback)
+
       val windowSize = window.getWindowSize()
       // Get the resolution of the primary monitor
       val videoMode = GlfwManager.getVideoMode()
@@ -56,19 +78,6 @@ class GlfwWorker:CoroutineScope{
       GlfwManager.terminate()
    }
 
-   private suspend fun init() = withContext(coroutineContext) {
-      // Setup an error callback.
-      GlfwManager.setErrorCallBack {
-         logger.error { "[LWJGL] ${it.error} error\n" }
-         logger.error { "\tDescription : ${it.description}" }
-         logger.error { "\tStacktrace  :" }
-         val stack = it.stack
-         for (i in 6 until stack.size) {
-            logger.error { "\t\t${stack[i].toString()}" }
-         }
-      }
-      GlfwManager.init()
-   }
 
    private suspend fun loop() = withContext(coroutineContext) {
       // This line is critical for LWJGL's interoperation with GLFW's
@@ -79,7 +88,7 @@ class GlfwWorker:CoroutineScope{
       GL.createCapabilities()
 
       // Set the clear color
-      GL11.glClearColor(1.0f, 0.0f, 0.0f, 0.0f)
+      GL11.glClearColor(1.0f, 1.0f, 1.0f, 0.0f)
 
       // Run the rendering loop until the user has attempted to close
       // the window or has pressed the ESCAPE key.
