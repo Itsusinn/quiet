@@ -4,15 +4,15 @@ import io.github.itsusinn.extension.async.annotation.Blocking
 import io.github.itsusinn.extension.async.annotation.NonBlocking
 import io.github.itsusinn.extension.java.thread.SingleThread
 import io.github.itsusinn.extension.org.lwjgl.event.GLFWErrorEvent
+import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWVidMode
 
-object GlfwManager:CoroutineScope{
-   val logicalMainThread = SingleThread.create("lwjgl")
-   override val coroutineContext = logicalMainThread.coroutineContext
+object GlfwManager:CoroutineScope by SingleThreadCoroutineScope("lwjgl"){
 
    /**
     * Returns the current video mode of the specified monitor
@@ -48,8 +48,8 @@ object GlfwManager:CoroutineScope{
       async{
          GLFW.glfwTerminate()
          setErrorCallBack(null)
-      }
-      logicalMainThread.shutdown()
+      }.await()
+      cancel()
    }
 
    /**

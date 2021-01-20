@@ -2,10 +2,12 @@ package io.github.itsusinn.extension.org.lwjgl
 
 import io.github.itsusinn.extension.java.thread.SingleThread
 import io.github.itsusinn.extension.org.lwjgl.event.KeyboardEvent
+import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
 import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.system.MemoryStack
@@ -44,16 +46,13 @@ class Window(
    val title:CharSequence,
    val monitor:Long,
    val share:Long,
-   private val logicalMainThread: SingleThread = GlfwManager.logicalMainThread
-   ): CoroutineScope {
-   override val coroutineContext: CoroutineContext
-      get() = logicalMainThread.coroutineContext
-
+   ): CoroutineScope by SingleThreadCoroutineScope("window"){
+   private val dispatcher = coroutineContext
    var handle by Delegates.notNull<Long>()
 
    init {
       runBlocking {
-         async {
+         withContext(dispatcher){
             // Configure GLFW
             GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
@@ -63,7 +62,7 @@ class Window(
             handle = GLFW.glfwCreateWindow(width, height, title, monitor, share)
             // add a not null check here to make sure the non-null feat of kt
             check(handle != NullPointer) { "Failed to create the GLFW window" }
-         }.await()
+         }
       }
    }
 
