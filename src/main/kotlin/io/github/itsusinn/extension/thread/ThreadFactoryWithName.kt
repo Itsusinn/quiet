@@ -6,10 +6,13 @@ import java.lang.Runnable
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * from https://my.oschina.net/u/4477286/blog/4274564
+ * Modified from https://my.oschina.net/u/4477286/blog/4274564
  * @param name human-readable
  */
-internal class ThreadFactoryWithName(name: String) : ThreadFactory {
+internal class ThreadFactoryWithName(
+   name: String,
+   private val asDaemon:Boolean = true
+) : ThreadFactory {
 
    companion object{
       private val exist = ConcurrentHashMap<String,AtomicInteger>()
@@ -38,9 +41,8 @@ internal class ThreadFactoryWithName(name: String) : ThreadFactory {
          }else{
             return@run Thread(group, r, "$namePrefix-$num", 0)
          }
-
       }
-      if (t.isDaemon) t.isDaemon = false
+      if (t.isDaemon != asDaemon) t.isDaemon = asDaemon
       if (t.priority != Thread.NORM_PRIORITY) t.priority = Thread.NORM_PRIORITY
       return t
    }

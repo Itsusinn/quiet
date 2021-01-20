@@ -1,8 +1,6 @@
 package io.github.itsusinn.extension.thread
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.*
 import kotlin.coroutines.CoroutineContext
@@ -18,7 +16,7 @@ open class CoroutineScopeWithDispatcher(
  * even it needn't be invoked
  */
 open class SingleThreadCoroutineScope private constructor(
-   private val executor: ExecutorService,
+  private val executor: ExecutorService,
 ):CoroutineScope {
    override val coroutineContext = executor.asCoroutineDispatcher()
 
@@ -33,12 +31,11 @@ open class SingleThreadCoroutineScope private constructor(
 /**
  * @param[name] Forbid duplication
  */
-fun SingleThreadPoolExecutor(name: String) =
-   ThreadPoolExecutor(
-      1,
-      1,
-      0L,
-      TimeUnit.MILLISECONDS,
-      LinkedBlockingQueue(),
-      ThreadFactoryWithName(name)
-   )
+fun SingleThreadPoolExecutor(name: String) = ThreadPoolExecutor(
+   1,
+   1,
+   0L,
+   TimeUnit.MILLISECONDS,
+   LinkedBlockingQueue(),
+   ThreadFactoryWithName(name)
+)

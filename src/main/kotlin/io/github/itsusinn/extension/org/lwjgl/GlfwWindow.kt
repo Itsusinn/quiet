@@ -1,8 +1,6 @@
 package io.github.itsusinn.extension.org.lwjgl
 
-import io.github.itsusinn.extension.java.thread.SingleThread
 import io.github.itsusinn.extension.org.lwjgl.event.KeyboardEvent
-import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
 import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -11,7 +9,6 @@ import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.system.MemoryStack
-import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
 /**
@@ -24,8 +21,8 @@ fun createWindow(
    title:CharSequence = "GlfwWindow $LwjglVersion",
    monitor:Long = NullPointer,
    share:Long = NullPointer
-): Window {
-   return Window(identifier, width, height, title, monitor, share)
+): GlfwWindow {
+   return GlfwWindow(identifier, width, height, title, monitor, share)
 }
 
 /**
@@ -39,14 +36,15 @@ fun createWindow(
  *
  * @return the handle of the created window, or Null if an error occurred
  */
-class Window(
+class GlfwWindow(
    val identifier:String,
    val width:Int,
    val height:Int,
    val title:CharSequence,
    val monitor:Long,
    val share:Long,
-   ): CoroutineScope by SingleThreadCoroutineScope("window"){
+   hintBuilder:Int = 0
+   ): CoroutineScope by GlfwManager {
    private val dispatcher = coroutineContext
    var handle by Delegates.notNull<Long>()
 
@@ -75,41 +73,39 @@ class Window(
       set(value) = GLFW.glfwSetWindowShouldClose(handle, value)
 
    /**
-    * Resets all callbacks for the GLFW window to Null
-    * and Callback#free frees all previously set callbacks.
-    */
-   fun freeCallbacks() = Callbacks.glfwFreeCallbacks(handle)
-
-   /**
     * Destroys the window and its context
     */
-   fun destroy() = async { GLFW.glfwDestroyWindow(handle) }
+   suspend fun destroy() = withContext(coroutineContext) {
+      GLFW.glfwDestroyWindow(handle)
+   }
 
    /**
     * Sets the position, in screen coordinates, of the upper-left corner of the content area of the windowed mode window.
     * If the window is a full screen window, this function does nothing.
     */
-   fun setWindowPos(xPos:Int, yPos:Int) = async { GLFW.glfwSetWindowPos(handle, xPos, yPos) }
+   suspend fun setWindowPos(xPos:Int, yPos:Int) = withContext(coroutineContext) {
+      GLFW.glfwSetWindowPos(handle, xPos, yPos)
+   }
 
    /**
     * Retrieves the size, in screen coordinates, of the content area of the specified window.
     */
-   fun getWindowSize() = runBlocking<WindowSize>{
-      async<WindowSize> {
-         MemoryStack.stackPush().use { stack ->
-            val pWidth = stack.mallocInt(1) // int*
-            val pHeight = stack.mallocInt(1) // int*
-            // Get the window size passed to glfwCreateWindow
-            GLFW.glfwGetWindowSize(handle, pWidth, pHeight)
-            return@async WindowSize(pWidth[0],pHeight[0])
-         }
-      }.await()
+   suspend fun getWindowSize():WindowSize = withContext(coroutineContext){
+      MemoryStack.stackPush().use { stack ->
+         val pWidth = stack.mallocInt(1) // int*
+         val pHeight = stack.mallocInt(1) // int*
+         // Get the window size passed to glfwCreateWindow
+         GLFW.glfwGetWindowSize(handle, pWidth, pHeight)
+         return@withContext WindowSize(pWidth[0],pHeight[0])
+      }
    }
 
    /**
     * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
     */
-   fun setKeyboardCallback(keyboardCallback: (KeyboardEvent) -> Unit) = async {
+   suspend fun setKeyboardCallback(
+      keyboardCallback: (KeyboardEvent) -> Unit
+   ) = withContext(coroutineContext){
       GLFW.glfwSetKeyCallback(handle) { _, key, scancode, action, mods ->
          keyboardCallback(KeyboardEvent(key, scancode, action, mods))
       }
@@ -118,5 +114,16 @@ class Window(
    /**
     * Makes the window visible if it was previously hidden.
     */
-   fun show() = async { GLFW.glfwShowWindow(handle) }
+   suspend fun show() = withContext(coroutineContext){
+      GLFW.glfwShowWindow(handle)
+   }
 }
+
+fun GlfwWindow.setAsCurrentContext() = GLFW.glfwMakeContextCurrent(handle)
+fun GlfwWindow.releaseCurrentContext() = GLFW.glfwMakeContextCurrent(0)
+fun GlfwWindow.swapBuffers() = GLFW.glfwSwapBuffers(handle)
+/**
+ * Resets all callbacks for the GLFW window to Null
+ * and Callback#free frees all previously set callbacks.
+ */
+fun GlfwWindow.freeCallbacks() = Callbacks.glfwFreeCallbacks(handle)
