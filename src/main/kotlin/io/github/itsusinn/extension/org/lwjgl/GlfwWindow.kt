@@ -2,12 +2,17 @@ package io.github.itsusinn.extension.org.lwjgl
 
 import io.github.itsusinn.extension.org.lwjgl.callback.CursorPosCallback
 import io.github.itsusinn.extension.org.lwjgl.callback.KeyboardCallback
+import io.github.itsusinn.extension.org.lwjgl.callback.MouseButtonCallback
+import io.github.itsusinn.extension.org.lwjgl.callback.ScrollCallback
 import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.Callbacks
+import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback
+import org.lwjgl.glfw.GLFWScrollCallback
 import org.lwjgl.system.MemoryStack
 import kotlin.properties.Delegates
 
@@ -52,12 +57,12 @@ class GlfwWindow(
       runBlocking {
          withContext(dispatcher){
             // Configure GLFW
-            GLFW.glfwDefaultWindowHints() // optional, the current window hints are already the default
-            GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE) // the window will stay hidden after creation
-            GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE) // the window will be resizable
+            glfwDefaultWindowHints() // optional, the current window hints are already the default
+            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
 
             // call original fun which returns handle to create window
-            handle = GLFW.glfwCreateWindow(width, height, title, monitor, share)
+            handle = glfwCreateWindow(width, height, title, monitor, share)
             // add a not null check here to make sure the non-null feat of kt
             check(handle != NullPointer) { "Failed to create the GLFW window" }
          }
@@ -69,14 +74,14 @@ class GlfwWindow(
     * can be called from any thread
     */
    var shouldClose:Boolean
-      get() = GLFW.glfwWindowShouldClose(handle)
-      set(value) = GLFW.glfwSetWindowShouldClose(handle, value)
+      get() = glfwWindowShouldClose(handle)
+      set(value) = glfwSetWindowShouldClose(handle, value)
 
    /**
     * Destroys the window and its context
     */
    suspend fun destroy() = withContext(coroutineContext) {
-      GLFW.glfwDestroyWindow(handle)
+      glfwDestroyWindow(handle)
    }
 
    /**
@@ -95,7 +100,7 @@ class GlfwWindow(
          val pWidth = stack.mallocInt(1) // int*
          val pHeight = stack.mallocInt(1) // int*
          // Get the window size passed to glfwCreateWindow
-         GLFW.glfwGetWindowSize(handle, pWidth, pHeight)
+         glfwGetWindowSize(handle, pWidth, pHeight)
          return@withContext WindowSize(pWidth[0],pHeight[0])
       }
    }
@@ -103,50 +108,69 @@ class GlfwWindow(
    /**
     * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
     */
-   suspend fun setKeyboardCallback(
-      keyboardCallback: KeyboardCallback?
-   ) = withContext(coroutineContext){
-      if (keyboardCallback == null){
-         GLFW.glfwSetKeyCallback(handle,null)
-         return@withContext
-      }
-      GLFW.glfwSetKeyCallback(handle) cb@{
+   suspend inline fun setKeyboardCallback(
+      callback: KeyboardCallback
+   ) = withContext(coroutineContext) {
+      glfwSetKeyCallback(handle) cb@{
             handle:Long,
             key: Int,
             scancode: Int,
             action: Int,
             mods: Int ->
          if (handle!=this@GlfwWindow.handle) return@cb
-         keyboardCallback.invoke(this@GlfwWindow,key, scancode, action, mods)
+         callback.invoke(this@GlfwWindow,key, scancode, action, mods)
       }
    }
-   suspend fun setCursorPosCallback(
-      cursorPosCallback:CursorPosCallback?
+
+   /**
+    * Will be called when the cursor is moved.
+    */
+   suspend inline fun setCursorPosCallback(
+      callback:CursorPosCallback
    ) = withContext(coroutineContext){
-      if (cursorPosCallback == null){
-         GLFW.glfwSetCursorPosCallback(handle,null)
-         return@withContext
-      }
-      GLFW.glfwSetCursorPosCallback(handle) cb@{
+      glfwSetCursorPosCallback(handle) cb@{
             handle:Long,
             xpos: Double,
             ypos: Double ->
          if (handle!=this@GlfwWindow.handle) return@cb
-         cursorPosCallback.invoke(this@GlfwWindow,xpos,ypos)
+         callback.invoke(this@GlfwWindow,xpos,ypos)
+      }
+   }
+
+   suspend inline fun setMouseButtonCallback(
+      callback:MouseButtonCallback
+   ) = withContext(coroutineContext){
+      glfwSetMouseButtonCallback(handle) cb@{
+            handle: Long,
+            button: Int,
+            action: Int,
+            mods: Int ->
+         if (handle!=this@GlfwWindow.handle) return@cb
+         callback.invoke(this@GlfwWindow, button, action, mods)
+      }
+   }
+
+   suspend fun setScrollCallback(
+      callback: ScrollCallback
+   ) = withContext(coroutineContext){
+      glfwSetScrollCallback(handle) cb@{
+            handle: Long,
+            xOffset: Double,
+            yOffset: Double ->
+         if (handle != this@GlfwWindow.handle) return@cb
+         callback.invoke(this@GlfwWindow, xOffset, yOffset)
       }
    }
 
    /**
     * Makes the window visible if it was previously hidden.
     */
-   suspend fun show() = withContext(coroutineContext){
-      GLFW.glfwShowWindow(handle)
-   }
+   suspend fun show() = withContext(coroutineContext){ glfwShowWindow(handle) }
 }
 
-fun GlfwWindow.setAsCurrentContext() = GLFW.glfwMakeContextCurrent(handle)
-fun GlfwWindow.releaseCurrentContext() = GLFW.glfwMakeContextCurrent(0)
-fun GlfwWindow.swapBuffers() = GLFW.glfwSwapBuffers(handle)
+fun GlfwWindow.setAsCurrentContext() = glfwMakeContextCurrent(handle)
+fun GlfwWindow.releaseCurrentContext() = glfwMakeContextCurrent(0)
+fun GlfwWindow.swapBuffers() = glfwSwapBuffers(handle)
 /**
  * Resets all callbacks for the GLFW window to Null
  * and Callback#free frees all previously set callbacks.

@@ -1,17 +1,24 @@
 package io.github.itsusinn.quiet.listener
 
 import io.github.itsusinn.extension.org.lwjgl.GlfwWindow
+import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
+import kotlinx.coroutines.CoroutineScope
 import org.lwjgl.glfw.GLFW.GLFW_PRESS
 import org.lwjgl.glfw.GLFW.GLFW_RELEASE
 
-object MouseListener {
+object MouseListener: CoroutineScope by SingleThreadCoroutineScope("glfw-input")  {
    private var scrollX = 0.0
    private var scrollY = 0.0
    private var xPos = 0.0
    private var yPos = 0.0
+
    private var lastX = 0.0
    private var lastY = 0.0
-   private val mouseButtonPressed = BooleanArray(3)
+   private val mouseButtonPressed = ArrayList<Boolean>(3).apply {
+      repeat(3){
+         add(false)
+      }
+   }
    private var isDragging = false
 
    fun getX() = xPos
@@ -23,8 +30,7 @@ object MouseListener {
    fun isDragging() = isDragging
 
    fun mouseButtonDown(button:Int):Boolean{
-      if (button > mouseButtonPressed.size) return false
-      return mouseButtonPressed[button]
+      return mouseButtonPressed.getOrNull(button) ?:false
    }
 
    fun mousePosCallback(

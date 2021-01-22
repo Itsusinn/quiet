@@ -11,6 +11,8 @@ open class CoroutineScopeWithDispatcher(
    constructor(parent:CoroutineScopeWithDispatcher):this(parent.coroutineContext)
 }
 
+private val cache = ConcurrentHashMap<String,ThreadPoolExecutor>()
+
 /**
  * should keep the reference of its instance,
  * even it needn't be invoked
@@ -22,7 +24,9 @@ open class SingleThreadCoroutineScope private constructor(
 
    constructor(
       name: String = UUID.randomUUID().toString()
-   ) : this(SingleThreadPoolExecutor(name))
+   ) : this(
+      cache.getOrPut(name){ SingleThreadPoolExecutor(name) }
+   )
 
    constructor(parent:SingleThreadCoroutineScope) : this(parent.executor)
 
