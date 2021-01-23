@@ -15,6 +15,7 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL11.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.max
@@ -74,23 +75,6 @@ class GlfwWorker:CoroutineScope{
       window.setMouseButtonCallback(MouseListener::mouseButtonCallback)
       window.setScrollCallback(MouseListener::mouseScrollCallback)
 
-      KeyboardListener.registerHandler(
-         predicate = { keys ->
-            keys[GLFW_KEY_DOWN] or keys[GLFW_KEY_UP]
-         },
-         handler = { keys ->
-            if (keys[GLFW_KEY_DOWN]){
-               r = max(r-0.01f,0f)
-               g = max(g-0.01f,0f)
-               b = max(b-0.01f,0f)
-            }
-            if (keys[GLFW_KEY_UP]){
-               r = min(r+0.01f,1f)
-               g = min(g+0.01f,1f)
-               b = min(b+0.01f,1f)
-            }
-         }
-      )
 
       KeyboardListener.registerHandler(
          predicate = { keys ->
@@ -128,13 +112,15 @@ class GlfwWorker:CoroutineScope{
       scenes.forEach{
          it.value.init()
       }
-      var begin = now()
-      var end = now()
+      var begin: Float
+      var end: Float
+
+      glClearColor(r, g, b, a)
+      glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
+
       while (!window.shouldClose) {
          begin = now()
 
-         GL11.glClearColor(r, g, b, a)
-         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
          window.swapBuffers() // swap the color buffers
 
          GlfwManager.pollEvents()
