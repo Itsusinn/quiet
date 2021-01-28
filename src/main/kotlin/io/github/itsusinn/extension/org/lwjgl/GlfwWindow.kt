@@ -97,6 +97,7 @@ class GlfwWindow(
     */
    suspend fun getWindowSize():WindowSize = withContext(coroutineContext){
       MemoryStack.stackPush().use { stack ->
+
          val pWidth = stack.mallocInt(1) // int*
          val pHeight = stack.mallocInt(1) // int*
          // Get the window size passed to glfwCreateWindow

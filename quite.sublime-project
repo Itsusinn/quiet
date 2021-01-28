@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "."
+		},
+		{
+			"path": "/home/itsusinn/WorkSpace/react-tutorial"
 		}
 	]
 }

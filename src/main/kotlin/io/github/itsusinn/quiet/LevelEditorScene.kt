@@ -1,186 +1,150 @@
+@file:Suppress("NOTHING_TO_INLINE")
 package io.github.itsusinn.quiet
 
-import io.github.itsusinn.extension.org.lwjgl.NullPointer
+import io.github.itsusinn.extension.org.lwjgl.camera.Camera
+import io.github.itsusinn.extension.org.lwjgl.memory.floatDirectArrayOf
+import io.github.itsusinn.extension.org.lwjgl.memory.uintDirectArrayOf
 import io.github.itsusinn.extension.org.lwjgl.scene.Scene
+import io.github.itsusinn.extension.org.lwjgl.shader.FragmentShader
+import io.github.itsusinn.extension.org.lwjgl.shader.ShaderProgram
+import io.github.itsusinn.extension.org.lwjgl.shader.ShaderSource
+import io.github.itsusinn.extension.org.lwjgl.shader.VertexShader
 import mu.KotlinLogging
-import org.lwjgl.BufferUtils.*
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.*
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL15.*
-import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GL20.*
+import org.joml.Vector2f
 import org.lwjgl.opengl.GL30.*
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
 import kotlin.properties.Delegates
 
 private val logger = KotlinLogging.logger {  }
 
+
 class LevelEditorScene: Scene() {
 
-   private val vertexShaderSrc = """
-      #version 330 core
+   private val source = ShaderSource("assets/shaders/default.glsl")
 
-      layout (location=0) in vec3 aPos;
-      layout (location=1) in vec4 aColor;
+   private val vertexShader = VertexShader.create(source)
+   private val fragmentShader = FragmentShader.create(source)
 
-      out vec4 fColor;
+   val shaderProgram = ShaderProgram()
+   val camera = Camera(Vector2f(0f,0f))
 
-      void main (void) {
-          fColor = aColor;  
-          gl_Position = vec4(aPos,1.0);
-      }
-   """.trimIndent()
-   private val fragmentShaderSrc = """
-      #version 330 core
+   private val vertxArray = floatDirectArrayOf(
+      -50.5f,  50f, 10f,     1.0f,1.0f,0.0f,1.0f,  //top left     0
+       50.5f,  50.5f, 0f,     1.0f,1.0f,0.0f,1.0f,  //top right    1
+      -50.5f, -50.5f, 0f,    1.0f,0.0f,1.0f,1.0f,  //bottom left  2
+      50.5f, -50.5f, 0f,     1.0f,0.0f,0.0f,1.0f,  //bottom right 3
 
-      in vec4 fColor;
+      //position           // color
 
-      out vec4 color;
-
-      void main(){
-      	color = fColor;
-      }
-   """.trimIndent()
-
-   private var vertexID by Delegates.notNull<Int>()
-   private var fragmentID by Delegates.notNull<Int>()
-   private var shaderProgram by Delegates.notNull<Int>()
+      /**
+       *0     1
+       *
+       *2     3
+       */
+   )
 
 
-   private val vertxArrayDirect = FloatBuffer.wrap(
-      floatArrayOf(
-         //position           // color
-         0.5f, -0.5f,0.0f,     1.0f,0.0f,0.0f,1.0f,  //bottom right 0
-         -0.5f,  0.5f,0.0f,     1.0f,1.0f,0.0f,1.0f,  //top left     1
-         0.5f,  0.5f,0.0f,     0.0f,0.0f,1.0f,1.0f,  //top right    2
-         -0.5f, -0.5f,0.0f,     1.0f,1.0f,0.0f,1.0f,  //bottom left  3
-      )
-   ).flip()
-   private val elementArrayDirect = IntBuffer.wrap(
-      intArrayOf(
-         /*
-               * 1     * 3
+   private val elementArray = uintDirectArrayOf(
+      1,2,0, //top right triangle
+      1,2,3, //bottom left triangle
+   )
 
-               * 2     * 0
-          */
+   private val vaoID by lazy { glGenVertexArrays() }
 
-         1,0,3, //top right triangle
-         1,2,0, //bottom left triangle
+   //使用glGenBuffers函数生成一个VBO对象并返回一个缓冲ID
+   private val vboID by lazy { glGenBuffers() }
 
-      )
-   ).flip()
+   private val eboID by lazy { glGenBuffers() }
 
-
-   private var vaoID by Delegates.notNull<Int>()
-   private var vboID by Delegates.notNull<Int>()
-   private var eboID by Delegates.notNull<Int>()
-
+   @ExperimentalUnsignedTypes
    override fun init() {
 
       /**
        * compile and link shaders
        */
 
-      //first load and compile vertex shader
-      vertexID = glCreateShader(GL_VERTEX_SHADER)
-      //pass the source code to gpu
-      glShaderSource(vertexID,vertexShaderSrc)
-      glCompileShader(vertexID)
-      //check error in compilation
-      var success = glGetShaderi(vertexID, GL_COMPILE_STATUS)
-      if (success == GL_FALSE){
-         val len = glGetShaderi(vertexID, GL_INFO_LOG_LENGTH)
-         logger.error { "Error happened in shader compilation" }
-         logger.error { glGetShaderInfoLog(vertexID,len) }
-         assert(false)
-      }
+      vertexShader.compile()
+      fragmentShader.compile()
 
-      //first load and compile vertex shader
-      fragmentID = glCreateShader(GL_FRAGMENT_SHADER)
-      //pass the source code to gpu
-      glShaderSource(fragmentID,fragmentShaderSrc)
-      glCompileShader(fragmentID)
-      //check error in compilation
-      success = glGetShaderi(fragmentID, GL_COMPILE_STATUS)
-      if (success == GL_FALSE){
-         val len = glGetShaderi(fragmentID, GL_INFO_LOG_LENGTH)
-         logger.error { "Error happened in shader compilation" }
-         logger.error { glGetShaderInfoLog(fragmentID,len) }
-      }
+      //link shaders
+      shaderProgram.attachShader(vertexShader)
+      shaderProgram.attachShader(fragmentShader)
 
-
-
-      //link shaders and check for errors
-      shaderProgram = glCreateProgram()
-      glAttachShader(shaderProgram,vertexID)
-      glAttachShader(shaderProgram,fragmentID)
-      glLinkProgram(shaderProgram)
-
-      //check for errors
-      success = glGetProgrami(shaderProgram, GL_LINK_STATUS)
-      if (success == GL_FALSE){
-         val len = glGetProgrami(shaderProgram, GL_INFO_LOG_LENGTH)
-         logger.error { "Error happened in linking shaders" }
-         logger.error { glGetProgramInfoLog(fragmentID,len) }
-         assert(false)
-      }
+      shaderProgram.link()
 
       /**
        * generate VAO,VBO,and EBO buffer objects and send to gpu
-       * VAO: vertex array object
-       * VBO: vertx buffer object
-       * EBO: elements buffer object
+       * 顶点数组对象：Vertex Array Object，VAO
+       * 顶点缓冲对象：Vertex Buffer Object，VBO
+       * 索引缓冲对象：Element Buffer Object，EBO或Index Buffer Object，IBO
        */
 
-      vaoID = glGenVertexArrays()
       glBindVertexArray(vaoID)
 
-      //create a float buffers of vertices
-      //使用glGenBuffers函数生成一个VBO对象并返回一个缓冲ID
-      vboID = glGenBuffers()
-      //使用glBindBuffer函数把新创建的缓冲绑定到GL_ARRAY_BUFFER目标上
+      //使用glBindBuffer函数把创建的缓冲绑定到GL_ARRAY_BUFFER目标上
       glBindBuffer(GL_ARRAY_BUFFER,vboID)
-      glBufferData(GL_ARRAY_BUFFER,vertxArrayDirect.array(), GL_STATIC_DRAW)
+      //把顶点数据储存在显卡的内存中，用VBO这个顶点缓冲对象管理
+      glBufferData(GL_ARRAY_BUFFER ,vertxArray, GL_STATIC_DRAW)
 
       //create indices and upload
-      eboID = glGenBuffers()
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,eboID)
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER,elementArrayDirect.array(), GL_STATIC_DRAW)
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER,elementArray, GL_STATIC_DRAW)
 
       //Add vertex attribute pointers
-
+      //position 占三个浮点数
       val positionSize = 3
+      //color 占四个浮点数
       val colorSize = 4
+      //一个浮点数占４个字节
       val floatSizeByte = 4
+
       val vertexSizeBytes = (positionSize+colorSize) * floatSizeByte
 
-      glVertexAttribPointer(0,positionSize, GL_FLOAT,false,vertexSizeBytes,0L)
+
+
+      glVertexAttribPointer(0, positionSize, GL_FLOAT, false, vertexSizeBytes, 0L)
       glEnableVertexAttribArray(0)
 
-      glVertexAttribPointer(1,colorSize, GL_FLOAT,false,vertexSizeBytes,(positionSize * floatSizeByte).toLong())
+      glVertexAttribPointer(1, colorSize, GL_FLOAT,false,vertexSizeBytes,(positionSize * floatSizeByte).toLong())
       glEnableVertexAttribArray(1)
 
    }
 
    override fun update(dt: Float) {
       //bind shader program
-      glUseProgram(shaderProgram)
-      //bind the VAO that we are using
-      glBindVertexArray(vaoID)
+      shaderProgram.use()
+      camera.position.x -= dt * 50f
+      camera.position.y -= dt * 50f
 
+      shaderProgram.uploadMatrix4("uProjection",camera.projectionMatrix)
+      shaderProgram.uploadMatrix4("uView",camera.getViewMatrix())
+      //bind the VAO that we are using,实际上是绑定上下文
+      glBindVertexArray(vaoID)
 
       //enable the vertex attribute pointer
       glEnableVertexAttribArray(0)
       glEnableVertexAttribArray(1)
-      glDrawElements(GL_TRIANGLES,elementArrayDirect.capacity(), GL_UNSIGNED_INT,0)
+      /**
+       * 通过glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)函数配置OpenGL如何绘制图元。
+       * 第一个参数表示我们打算将其应用到所有的三角形的正面和背面，第二个参数告诉我们用线来绘制。
+       * 之后的绘制调用会一直以线框模式绘制三角形，
+       * 直到我们用glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)将其设置回默认模式。
+       */
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+
+      /**
+       * 为了让OpenGL知道我们的坐标和颜色值构成的到底是什么，OpenGL需要你去指定这些数据所表示的渲染类型。
+       * 我们是希望把这些数据渲染成一系列的点？一系列的三角形？还是仅仅是一个长长的线？
+       * 做出的这些提示叫做图元(Primitive)，任何一个绘制指令的调用都将把图元传递给OpenGL。
+       * 这是其中的几个：GL_POINTS、GL_TRIANGLES、GL_LINE_STRIP。
+       */
+
+      glDrawElements(GL_TRIANGLES,elementArray.capacity(), GL_UNSIGNED_INT,0)
 
       //unbind everything
       glDisableVertexAttribArray(0)
       glDisableVertexAttribArray(1)
 
       glBindVertexArray(0)
-      glUseProgram(0)
+      shaderProgram.detach()
    }
 }

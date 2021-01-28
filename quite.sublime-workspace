@@ -12,11 +12,21 @@
 	"buffers":
 	[
 		{
-			"file": "assets/shaders/default.glsl",
+			"contents": "\n\n\nBimport logo from './logo.svg';\nimport './App.css';\n\nfunction App() {\n  return (\n    <div className=\"App\">\n      <header className=\"App-header\">\n        <img src={logo} className=\"App-logo\" alt=\"logo\" />\n        <p>\n          Edit <code>src/App.js</code> and save to reload.\n        </p>\n        <a\n          className=\"App-link\"\n          href=\"https://reactjs.org\"\n          target=\"_blank\"\n          rel=\"noopener noreferrer\"\n        >\n          Learn React\n        </a>\n      </header>\n    </div>\n  );\n}\n\nexport default App;\n",
+			"file": "/home/itsusinn/WorkSpace/react-tutorial/src/App.js",
+			"file_size": 529,
+			"file_write_time": 132561162460918926,
 			"settings":
 			{
-				"buffer_size": 303,
-				"encoding": "UTF-8",
+				"buffer_size": 532,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/itsusinn/WorkSpace/Code/easy-forward/message-dispatcher-service/src/index.js",
+			"settings":
+			{
+				"buffer_size": 1163,
 				"line_ending": "Unix"
 			}
 		}
@@ -32,6 +42,14 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"ins\t",
+				"Package Control: Install Package"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
 			[
 				"kotlin",
 				"Package Control: Install Package"
@@ -102,21 +120,14 @@
 	},
 	"expanded_folders":
 	[
-		"/home/itsusinn/WorkSpace/Code/quiet",
-		"/home/itsusinn/WorkSpace/Code/quiet/assets",
-		"/home/itsusinn/WorkSpace/Code/quiet/assets/shaders",
-		"/home/itsusinn/WorkSpace/Code/quiet/src",
-		"/home/itsusinn/WorkSpace/Code/quiet/src/main",
-		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin",
-		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin/io",
-		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin/io/github",
-		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin/io/github/itsusinn",
-		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin/io/github/itsusinn/quiet"
+		"/home/itsusinn/WorkSpace/react-tutorial",
+		"/home/itsusinn/WorkSpace/react-tutorial/src"
 	],
 	"file_history":
 	[
-		"/home/itsusinn/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
 		"/home/itsusinn/WorkSpace/Code/quiet/assets/shaders/default.glsl",
+		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin/io/github/itsusinn/extension/org/lwjgl/GlfwManager.kt",
+		"/home/itsusinn/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
 		"/home/itsusinn/WorkSpace/Code/quiet/src/main/kotlin/io/github/itsusinn/quiet/GlfwWorker.kt"
 	],
 	"find":
@@ -157,30 +168,58 @@
 			[
 				{
 					"buffer": 0,
-					"file": "assets/shaders/default.glsl",
+					"file": "/home/itsusinn/WorkSpace/react-tutorial/src/App.js",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 303,
+						"buffer_size": 532,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								203,
-								203
+								426,
+								426
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.sublime-syntax"
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "/home/itsusinn/WorkSpace/Code/easy-forward/message-dispatcher-service/src/index.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1163,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								155,
+								155
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -266,8 +305,8 @@
 	"show_minimap": true,
 	"show_open_files": false,
 	"show_tabs": true,
-	"side_bar_visible": false,
-	"side_bar_width": 264.0,
+	"side_bar_visible": true,
+	"side_bar_width": 218.0,
 	"status_bar_visible": false,
 	"template_settings":
 	{

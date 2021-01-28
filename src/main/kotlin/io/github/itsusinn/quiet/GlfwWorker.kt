@@ -75,7 +75,6 @@ class GlfwWorker:CoroutineScope{
       window.setMouseButtonCallback(MouseListener::mouseButtonCallback)
       window.setScrollCallback(MouseListener::mouseScrollCallback)
 
-
       KeyboardListener.registerHandler(
          predicate = { keys ->
             keys[GLFW_KEY_ESCAPE] == true
@@ -129,7 +128,10 @@ class GlfwWorker:CoroutineScope{
          val dt = end - begin
          begin = end
 
+         glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
+
          scenes.get(display)?.update(dt)
+
       }
    }
 

@@ -32,12 +32,23 @@ val lwjglNatives = when (OperatingSystem.current()) {
    }
 }
 
+val skijaPlatform =  when (OperatingSystem.current()) {
+   OperatingSystem.LINUX   -> "linux"
+   OperatingSystem.MAC_OS  -> "macos"
+   OperatingSystem.WINDOWS -> "windows"
+   else -> {
+      throw Error("Unrecognized or unsupported Operating system. Please set skijaPlatform manually")
+   }
+}
+
 group  = "io.github.itsusinn.quiet"
 version = "0.1.0-rc1"
+val skijaVersion = "0.89.0"
 
 repositories {
-    jcenter()
-    mavenCentral()
+   jcenter()
+   mavenCentral()
+   maven("https://packages.jetbrains.team/maven/p/skija/maven")
 }
 
 val compileKotlin: KotlinCompile by tasks
@@ -48,10 +59,13 @@ compileKotlin.kotlinOptions {
 
 dependencies {
    implementation( "org.jetbrains.kotlin:kotlin-stdlib")
+   implementation( "org.jetbrains.kotlin:kotlin-reflect:1.4.21")
    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.21")
    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.21")
    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.8")
    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.2")
+
+   api ("org.jetbrains.skija:skija-${skijaPlatform}:${skijaVersion }")
 
    //jackson
    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
