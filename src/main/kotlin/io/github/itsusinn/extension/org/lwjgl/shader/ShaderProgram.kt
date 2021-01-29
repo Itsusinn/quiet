@@ -1,13 +1,14 @@
 package io.github.itsusinn.extension.org.lwjgl.shader
 
 import io.github.itsusinn.extension.org.lwjgl.memory.stack
+import io.github.itsusinn.extension.org.lwjgl.texture.Texture
 import mu.KotlinLogging
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryStack
-import java.lang.IllegalStateException
+import java.util.*
 
 private val logger by lazy { KotlinLogging.logger {  } }
 
@@ -31,9 +32,24 @@ class ShaderProgram {
          val matBuffer = mallocFloat(16)
          mat4.get(matBuffer)
          glUniformMatrix4fv(location,false,matBuffer)
-
       }
    }
+   fun uploadInt(varName:String,int: Int){
+      val location = glGetUniformLocation(program,varName)
+      use()
+      glUniform1i(location,int)
+   }
+   fun uploadFloat(varName:String,float:Float){
+      val location = glGetUniformLocation(program,varName)
+      use()
+      glUniform1f(location,float)
+   }
+   fun uploadTexture(varName:String,slot:Int){
+      val location = glGetUniformLocation(program,varName)
+      use()
+      glUniform1i(location,slot)
+   }
+
 
    private fun checkLink(){
       val success = glGetProgrami(program, GL_LINK_STATUS)

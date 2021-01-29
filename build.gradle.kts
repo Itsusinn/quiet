@@ -44,7 +44,7 @@ val skijaPlatform =  when (OperatingSystem.current()) {
 group  = "io.github.itsusinn.quiet"
 version = "0.1.0-rc1"
 val skijaVersion = "0.89.0"
-
+val vertxVersion = "4.0.0"
 repositories {
    jcenter()
    mavenCentral()
@@ -58,6 +58,8 @@ compileKotlin.kotlinOptions {
 }
 
 dependencies {
+
+
    implementation( "org.jetbrains.kotlin:kotlin-stdlib")
    implementation( "org.jetbrains.kotlin:kotlin-reflect:1.4.21")
    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.21")
@@ -66,6 +68,8 @@ dependencies {
    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.2")
 
    api ("org.jetbrains.skija:skija-${skijaPlatform}:${skijaVersion }")
+
+   implementation("io.vertx:vertx-core:$vertxVersion")
 
    //jackson
    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
