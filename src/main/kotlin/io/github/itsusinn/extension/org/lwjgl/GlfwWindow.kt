@@ -4,30 +4,29 @@ import io.github.itsusinn.extension.org.lwjgl.callback.CursorPosCallback
 import io.github.itsusinn.extension.org.lwjgl.callback.KeyboardCallback
 import io.github.itsusinn.extension.org.lwjgl.callback.MouseButtonCallback
 import io.github.itsusinn.extension.org.lwjgl.callback.ScrollCallback
-import io.github.itsusinn.quiet.extension.org.lwjgl.unit.WindowSize
+import io.github.itsusinn.extension.org.lwjgl.memory.stack
+import io.github.itsusinn.quiet.extension.org.lwjgl.unit.with
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.Callbacks
-import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.* // ktlint-disable no-wildcard-imports
 import org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback
-import org.lwjgl.glfw.GLFWScrollCallback
-import org.lwjgl.system.MemoryStack
 import kotlin.properties.Delegates
 
 /**
  * a short way to create a window
  */
 fun createWindow(
-   identifier: String = "default",
-   width:Int = 900,
-   height:Int = 1600,
-   title:CharSequence = "GlfwWindow $LwjglVersion",
-   monitor:Long = NullPointer,
-   share:Long = NullPointer
+    identifier: String = "default",
+    width: Int = 900,
+    height: Int = 1600,
+    title: CharSequence = "GlfwWindow $LwjglVersion",
+    monitor: Long = 0L,
+    share: Long = 0L
 ): GlfwWindow {
-   return GlfwWindow(identifier, width, height, title, monitor, share)
+    return GlfwWindow(identifier, width, height, title, monitor, share)
 }
 
 /**
@@ -42,131 +41,136 @@ fun createWindow(
  * @return the handle of the created window, or Null if an error occurred
  */
 class GlfwWindow(
-   val identifier:String,
-   val width:Int,
-   val height:Int,
-   val title:CharSequence,
-   val monitor:Long,
-   val share:Long,
-   hintBuilder:Int = 0
-   ): CoroutineScope by GlfwManager {
-   private val dispatcher = coroutineContext
-   var handle by Delegates.notNull<Long>()
+    val identifier: String,
+    val width: Int,
+    val height: Int,
+    val title: CharSequence,
+    val monitor: Long,
+    val share: Long,
+    hintBuilder: () -> Unit = {
+        // Configure GLFW 
+        glfwDefaultWindowHints() // optional, the current window hints are already the default 
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation 
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable 
+    }
+) : CoroutineScope by GlfwManager {
+    private val dispatcher = coroutineContext
+    var handle by Delegates.notNull<Long>()
 
-   init {
-      runBlocking {
-         withContext(dispatcher){
-            // Configure GLFW
-            glfwDefaultWindowHints() // optional, the current window hints are already the default
-            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation
-            glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
+    init {
+        runBlocking {
+            withContext(dispatcher) {
+                hintBuilder()
+                // call original fun which returns handle to create window
+                handle = glfwCreateWindow(width, height, title, monitor, share)
+                // add a not null check here to make sure the non-null feat of kt
+                check(handle != 0L) { "Failed to create the GLFW window" }
+            }
+        }
+    }
 
-            // call original fun which returns handle to create window
-            handle = glfwCreateWindow(width, height, title, monitor, share)
-            // add a not null check here to make sure the non-null feat of kt
-            check(handle != NullPointer) { "Failed to create the GLFW window" }
-         }
-      }
-   }
+    /**
+     * the value of the close flag of window.
+     * can be called from any thread
+     */
+    var shouldClose: Boolean
+        get() = glfwWindowShouldClose(handle)
+        set(value) = glfwSetWindowShouldClose(handle, value)
 
-   /**
-    * the value of the close flag of window.
-    * can be called from any thread
-    */
-   var shouldClose:Boolean
-      get() = glfwWindowShouldClose(handle)
-      set(value) = glfwSetWindowShouldClose(handle, value)
+    /**
+     * Destroys the window and its context
+     */
+    suspend fun destroy() = withContext(coroutineContext) {
+        glfwDestroyWindow(handle)
+    }
 
-   /**
-    * Destroys the window and its context
-    */
-   suspend fun destroy() = withContext(coroutineContext) {
-      glfwDestroyWindow(handle)
-   }
+    /**
+     * Sets the position, in screen coordinates, of the upper-left corner of the content area of the windowed mode window.
+     * If the window is a full screen window, this function does nothing.
+     */
+    suspend fun setWindowPos(xPos: Int, yPos: Int) = withContext(coroutineContext) {
+        GLFW.glfwSetWindowPos(handle, xPos, yPos)
+    }
 
-   /**
-    * Sets the position, in screen coordinates, of the upper-left corner of the content area of the windowed mode window.
-    * If the window is a full screen window, this function does nothing.
-    */
-   suspend fun setWindowPos(xPos:Int, yPos:Int) = withContext(coroutineContext) {
-      GLFW.glfwSetWindowPos(handle, xPos, yPos)
-   }
+    var windowSize
+        get() = runBlocking {
+            withContext(coroutineContext) {
+                stack {
+                    val pWidth = mallocInt(1) // int*
+                    val pHeight = mallocInt(1) // int*
+                    // Get the window size passed to glfwCreateWindow
+                    glfwGetWindowSize(handle, pWidth, pHeight)
+                    pWidth[0] with pHeight[0]
+                }
+            }
+        }
+        set(value) = runBlocking {
+            withContext(coroutineContext) {
+                glfwSetWindowSize(handle, value.width, value.height)
+            }
+        }
 
-   /**
-    * Retrieves the size, in screen coordinates, of the content area of the specified window.
-    */
-   suspend fun getWindowSize():WindowSize = withContext(coroutineContext){
-      MemoryStack.stackPush().use { stack ->
-
-         val pWidth = stack.mallocInt(1) // int*
-         val pHeight = stack.mallocInt(1) // int*
-         // Get the window size passed to glfwCreateWindow
-         glfwGetWindowSize(handle, pWidth, pHeight)
-         return@withContext WindowSize(pWidth[0],pHeight[0])
-      }
-   }
-
-   /**
-    * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
-    */
-   suspend inline fun setKeyboardCallback(
-      callback: KeyboardCallback
-   ) = withContext(coroutineContext) {
-      glfwSetKeyCallback(handle) cb@{
-            handle:Long,
+    /**
+     * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
+     */
+    suspend inline fun setKeyboardCallback(
+        callback: KeyboardCallback
+    ) = withContext(coroutineContext) {
+        glfwSetKeyCallback(handle) cb@{
+            handle: Long,
             key: Int,
             scancode: Int,
             action: Int,
             mods: Int ->
-         if (handle!=this@GlfwWindow.handle) return@cb
-         callback.invoke(this@GlfwWindow,key, scancode, action, mods)
-      }
-   }
+            if (handle != this@GlfwWindow.handle) return@cb
+            callback.invoke(this@GlfwWindow, key, scancode, action, mods)
+        }
+    }
 
-   /**
-    * Will be called when the cursor is moved.
-    */
-   suspend inline fun setCursorPosCallback(
-      callback:CursorPosCallback
-   ) = withContext(coroutineContext){
-      glfwSetCursorPosCallback(handle) cb@{
-            handle:Long,
+    /**
+     * Will be called when the cursor is moved.
+     */
+    suspend inline fun setCursorPosCallback(
+        callback: CursorPosCallback
+    ) = withContext(coroutineContext) {
+        glfwSetCursorPosCallback(handle) cb@{
+            handle: Long,
             xpos: Double,
             ypos: Double ->
-         if (handle!=this@GlfwWindow.handle) return@cb
-         callback.invoke(this@GlfwWindow,xpos,ypos)
-      }
-   }
+            if (handle != this@GlfwWindow.handle) return@cb
+            callback.invoke(this@GlfwWindow, xpos, ypos)
+        }
+    }
 
-   suspend inline fun setMouseButtonCallback(
-      callback:MouseButtonCallback
-   ) = withContext(coroutineContext){
-      glfwSetMouseButtonCallback(handle) cb@{
+    suspend inline fun setMouseButtonCallback(
+        callback: MouseButtonCallback
+    ) = withContext(coroutineContext) {
+        glfwSetMouseButtonCallback(handle) cb@{
             handle: Long,
             button: Int,
             action: Int,
             mods: Int ->
-         if (handle!=this@GlfwWindow.handle) return@cb
-         callback.invoke(this@GlfwWindow, button, action, mods)
-      }
-   }
+            if (handle != this@GlfwWindow.handle) return@cb
+            callback.invoke(this@GlfwWindow, button, action, mods)
+        }
+    }
 
-   suspend fun setScrollCallback(
-      callback: ScrollCallback
-   ) = withContext(coroutineContext){
-      glfwSetScrollCallback(handle) cb@{
+    suspend fun setScrollCallback(
+        callback: ScrollCallback
+    ) = withContext(coroutineContext) {
+        glfwSetScrollCallback(handle) cb@{
             handle: Long,
             xOffset: Double,
             yOffset: Double ->
-         if (handle != this@GlfwWindow.handle) return@cb
-         callback.invoke(this@GlfwWindow, xOffset, yOffset)
-      }
-   }
+            if (handle != this@GlfwWindow.handle) return@cb
+            callback.invoke(this@GlfwWindow, xOffset, yOffset)
+        }
+    }
 
-   /**
-    * Makes the window visible if it was previously hidden.
-    */
-   suspend fun show() = withContext(coroutineContext){ glfwShowWindow(handle) }
+    /**
+     * Makes the window visible if it was previously hidden.
+     */
+    suspend fun show() = withContext(coroutineContext) { glfwShowWindow(handle) }
 }
 
 fun GlfwWindow.setAsCurrentContext() = glfwMakeContextCurrent(handle)

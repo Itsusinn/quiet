@@ -1,8 +1,10 @@
 package io.github.itsusinn.quiet
 
-suspend fun main(){
-   val context = GlfwWorker()
-   context.putScene("test",LevelEditorScene())
-   context.displayScene("test")
-   context.run()
+import kotlinx.coroutines.coroutineScope
+
+suspend fun main() = coroutineScope {
+
+    GlfwWorker.putScene("test", LevelEditorScene())
+    GlfwWorker.displayScene("test")
+    GlfwWorker.run()
 }
