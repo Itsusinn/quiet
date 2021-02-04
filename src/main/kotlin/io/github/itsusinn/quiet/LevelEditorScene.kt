@@ -3,7 +3,7 @@ package io.github.itsusinn.quiet
 
 import io.github.itsusinn.extension.org.lwjgl.camera.Camera
 import io.github.itsusinn.extension.org.lwjgl.memory.buf
-import io.github.itsusinn.extension.org.lwjgl.render.Scene
+import io.github.itsusinn.extension.org.lwjgl.render.AbstractScene
 import io.github.itsusinn.extension.org.lwjgl.shader.ShaderProgram
 import io.github.itsusinn.extension.org.lwjgl.texture.Texture
 import mu.KotlinLogging
@@ -11,9 +11,9 @@ import org.lwjgl.opengl.GL30.* // ktlint-disable no-wildcard-imports
 
 private val logger = KotlinLogging.logger { }
 
-class LevelEditorScene : Scene(Camera()) {
+class LevelEditorScene : AbstractScene(Camera()) {
 
-    val shaderProgram = ShaderProgram("assets/shaders/default.glsl")
+    val shaderProgram = ShaderProgram()
 
     private val vertxArray = floatArrayOf(
         // position        // color       //uv coordinates
@@ -41,9 +41,9 @@ class LevelEditorScene : Scene(Camera()) {
 
     private val eboID by lazy { glGenBuffers() }
 
-    private val texture = Texture("assets/images/test.jpg")
+    private val texture = Texture.cacheCreate("assets/images/test.jpg")
 
-    override fun init() {
+    override fun onInit() {
 
         shaderProgram.warmUp()
 
@@ -106,7 +106,10 @@ class LevelEditorScene : Scene(Camera()) {
         glEnableVertexAttribArray(2)
     }
 
-    override fun update(dt: Float) {
+    override fun onStart() {
+    }
+
+    override fun onUpdate(dt: Float) {
         // bind shader program
         shaderProgram.use()
         shaderProgram.uploadTexture("tex", 0)

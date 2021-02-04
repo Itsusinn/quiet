@@ -17,8 +17,8 @@ void main()
     fColor = aColor;
     fTexCoords = aTexCoords;
     fTexId = aTexId;
-
-    gl_Position = uProjection * uView * vec4(aPos, 1.0);
+    gl_Position = uProjection * uView * vec4(aPos,1.0);
+    // gl_Position = vec4(aPos,1.0);
 }
 
 #type fragment
@@ -34,11 +34,7 @@ out vec4 color;
 
 void main()
 {
-    if (fTexId > 0) {
-        int id = int(fTexId);
-        color = fColor * texture(uTextures[id], fTexCoords);
-        //color = vec4(fTexCoords, 0, 1);
-    } else {
-        color = fColor;
-    }
+     int id = int(fTexId);
+     // color = vec4(0.0,1.0,1.0,1.0);
+     color = fColor * texture(uTextures[id], fTexCoords);
 }

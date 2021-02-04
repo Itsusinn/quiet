@@ -4,7 +4,7 @@ import kotlinx.coroutines.coroutineScope
 
 suspend fun main() = coroutineScope {
 
-    GlfwWorker.putScene("test", LevelEditorScene())
+    GlfwWorker.putScene("test", BaseScene())
     GlfwWorker.displayScene("test")
     GlfwWorker.run()
 }
