@@ -1,26 +1,33 @@
+@file:Suppress("NOTHING_TO_INLINE")
 package io.github.itsusinn.extension.org.lwjgl.components
 
-import io.github.itsusinn.extension.org.lwjgl.texture.Texture
-import org.joml.Vector2f
-
-data class Coordinate(
-    val first: Vector2f,
-    val second: Vector2f,
-    val third: Vector2f,
-    val fourth: Vector2f
-)
+import io.github.itsusinn.extension.org.lwjgl.render.Sprite
+import io.github.itsusinn.extension.org.lwjgl.render.SpriteRender
+import org.joml.Vector4f
 
 class SpriteComponent(
-    val texture: Texture,
-    val texCoords: Coordinate = Coordinate(
-        Vector2f(1f, 1f),
-        Vector2f(1f, 0f),
-        Vector2f(0f, 0f),
-        Vector2f(0f, 1f)
-    ),
-    gameObject: GameObject
+    override val gameObject: GameObject,
+    val spriteRender: SpriteRender
 ) : AbstractComponent(gameObject) {
+
+    constructor(
+        gameObject: GameObject,
+        color: Vector4f = Vector4f(1f, 1f, 1f, 1f),
+        sprite: Sprite = Sprite(),
+    ) : this(
+        gameObject,
+        SpriteRender(
+            gameObject.modelTransformation,
+            color,
+            sprite,
+            gameObject.shape
+        )
+    )
 
     override fun update(dt: Float) {
     }
 }
+inline fun GameObject.SpriteComponent(
+    color: Vector4f = Vector4f(1f, 1f, 1f, 1f),
+    sprite: Sprite = Sprite()
+): SpriteComponent = SpriteComponent(this, color, sprite)
