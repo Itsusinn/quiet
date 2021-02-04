@@ -11,10 +11,14 @@ class Camera(
 
     val projectionMatrix = Matrix4f()
         .identity()
-        .ortho(0f, 32f * 40f, 0f, 32f * 21f, 0f, 100f)
+        .perspective(1f, 16 / 9f, 1f, 400f)
 
-    private val _viewMatrix = Matrix4f().identity()
+    private val _viewMatrix = Matrix4f()
 
     val viewMatrix
-        get() = _viewMatrix.lookAt(eye, center, up)!!
+        get() = _viewMatrix.identity().lookAt(
+            eye.x, eye.y, eye.z,
+            center.x + eye.x, center.y + eye.y, center.z,
+            up.x, up.y, up.z
+        )!!
 }
