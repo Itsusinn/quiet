@@ -1,14 +1,15 @@
 package io.github.itsusinn.extension.org.lwjgl
 
-import io.github.itsusinn.extension.org.lwjgl.callback.CursorPosCallback
-import io.github.itsusinn.extension.org.lwjgl.callback.KeyboardCallback
-import io.github.itsusinn.extension.org.lwjgl.callback.MouseButtonCallback
-import io.github.itsusinn.extension.org.lwjgl.callback.ScrollCallback
+import io.github.itsusinn.extension.org.lwjgl.input.callback.CursorPosCallback
+import io.github.itsusinn.extension.org.lwjgl.input.callback.KeyboardCallback
+import io.github.itsusinn.extension.org.lwjgl.input.callback.MouseButtonCallback
+import io.github.itsusinn.extension.org.lwjgl.input.callback.ScrollCallback
 import io.github.itsusinn.extension.org.lwjgl.memory.stack
 import io.github.itsusinn.quiet.extension.org.lwjgl.unit.with
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import net.mamoe.kjbb.JvmBlockingBridge
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.* // ktlint-disable no-wildcard-imports
@@ -80,6 +81,7 @@ class GlfwWindow(
     /**
      * Destroys the window and its context
      */
+    @JvmBlockingBridge
     suspend fun destroy() = withContext(coroutineContext) {
         glfwDestroyWindow(handle)
     }
@@ -88,6 +90,7 @@ class GlfwWindow(
      * Sets the position, in screen coordinates, of the upper-left corner of the content area of the windowed mode window.
      * If the window is a full screen window, this function does nothing.
      */
+    @JvmBlockingBridge
     suspend fun setWindowPos(xPos: Int, yPos: Int) = withContext(coroutineContext) {
         GLFW.glfwSetWindowPos(handle, xPos, yPos)
     }
@@ -113,6 +116,7 @@ class GlfwWindow(
     /**
      * Sets the key callback of the window, which is called when a key is pressed, repeated or released.
      */
+    @JvmBlockingBridge
     suspend inline fun setKeyboardCallback(
         callback: KeyboardCallback
     ) = withContext(coroutineContext) {
@@ -130,6 +134,7 @@ class GlfwWindow(
     /**
      * Will be called when the cursor is moved.
      */
+    @JvmBlockingBridge
     suspend inline fun setCursorPosCallback(
         callback: CursorPosCallback
     ) = withContext(coroutineContext) {
@@ -141,7 +146,7 @@ class GlfwWindow(
             callback.invoke(this@GlfwWindow, xpos, ypos)
         }
     }
-
+    @JvmBlockingBridge
     suspend inline fun setMouseButtonCallback(
         callback: MouseButtonCallback
     ) = withContext(coroutineContext) {

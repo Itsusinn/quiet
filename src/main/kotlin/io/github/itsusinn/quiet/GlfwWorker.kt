@@ -1,7 +1,7 @@
 package io.github.itsusinn.quiet
 
 import io.github.itsusinn.extension.org.lwjgl.* // ktlint-disable no-wildcard-imports
-import io.github.itsusinn.extension.org.lwjgl.render.Scene
+import io.github.itsusinn.extension.org.lwjgl.render.IScene
 import io.github.itsusinn.extension.org.lwjgl.unit.now
 import io.github.itsusinn.extension.thread.SingleThreadCoroutineScope
 import io.github.itsusinn.quiet.listener.KeyboardListener
@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
+import net.mamoe.kjbb.JvmBlockingBridge
 import org.lwjgl.glfw.GLFW.* // ktlint-disable no-wildcard-imports
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
@@ -24,9 +25,13 @@ object GlfwWorker : CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = thread.coroutineContext
 
-    private val scenes = ConcurrentHashMap<String, Scene>()
+    private val scenes = ConcurrentHashMap<String, IScene>()
 
-    fun putScene(name: String, scene: Scene) {
+    // val imguiContext by lazy { Context() }
+
+    // val implGl3: ImplGL3 by lazy { ImplGL3() }
+
+    fun putScene(name: String, scene: IScene) {
         scenes.put(name, scene)
     }
     private var display: String = ""
@@ -53,18 +58,14 @@ object GlfwWorker : CoroutineScope {
     }
     private val window: GlfwWindow = createWindow(
         "demo",
-        1280,
-        900,
+        1920,
+        1080,
         "Hello World!"
     )
 
-    var r = 1.0f
-    var g = 1.0f
-    var b = 1.0f
-    var a = 1.0f
-
+    @JvmBlockingBridge
     suspend fun run() = withContext(coroutineContext) {
-        println("Hello LWJGL $LwjglVersion!")
+        logger.info { "Hello LWJGL $LwjglVersion!" }
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         window.setKeyboardCallback(KeyboardListener::keyboardCallback)
@@ -94,6 +95,8 @@ object GlfwWorker : CoroutineScope {
         window.setAsCurrentContext()
         glfwSwapInterval(1)
         window.show()
+        GL.createCapabilities()
+
         loop()
 
         window.freeCallbacks()
@@ -103,14 +106,14 @@ object GlfwWorker : CoroutineScope {
 
     private suspend fun loop() = withContext(coroutineContext) {
 
-        GL.createCapabilities()
         scenes.forEach {
             it.value.init()
+            it.value.start()
         }
         var begin: Float
         var end: Float
 
-        glClearColor(r, g, b, a)
+        glClearColor(0.2F, 0.2F, 0.2F, 1F)
         glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
 
         while (!window.shouldClose) {
