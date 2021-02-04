@@ -7,6 +7,7 @@ plugins {
     application
     id("org.jetbrains.kotlin.jvm") version ("1.4.30-RC")
     id("com.github.johnrengelman.shadow") version ("5.2.0")
+    id("net.mamoe.kotlin-jvm-blocking-bridge") version "1.8.0"
 }
 
 val lwjglVersion = "3.2.3"
@@ -50,7 +51,10 @@ val vertxVersion = "4.0.0"
 repositories {
     jcenter()
     mavenCentral()
+    maven("https://dl.bintray.com/kotlin/kotlin-dev")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://packages.jetbrains.team/maven/p/skija/maven")
+    maven("https://jitpack.io")
 }
 
 val compileKotlin: KotlinCompile by tasks
@@ -83,10 +87,14 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
     implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
 
+    // implementation("com.github.kotlin-graphics:assimp:4.0")
+    for (it in arrayOf("gl", "glfw", "core")) {
+        implementation("com.github.kotlin-graphics.imgui:$it:1.79")
+    }
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
-
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-assimp")
+    implementation("org.lwjgl", "lwjgl-jemalloc")
     implementation("org.lwjgl", "lwjgl-glfw")
     implementation("org.lwjgl", "lwjgl-nfd")
     implementation("org.lwjgl", "lwjgl-openal")
@@ -94,10 +102,12 @@ dependencies {
     implementation("org.lwjgl", "lwjgl-stb")
     runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-assimp", classifier = lwjglNatives)
+    runtimeOnly("org.lwjgl", "lwjgl-jemalloc", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-openal", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
     implementation("org.joml", "joml", jomlVersion)
+    implementation("com.squareup.okio:okio:2.10.0")
 }
