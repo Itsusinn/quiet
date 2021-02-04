@@ -13,7 +13,7 @@ interface Shader {
     fun checkCompile(msg: () -> String) {
         var success = glGetShaderi(shaderID, GL_COMPILE_STATUS)
         if (success == GL_FALSE) {
-            val len = GL30.glGetShaderi(shaderID, GL30.GL_INFO_LOG_LENGTH)
+            val len = GL30.glGetShaderi(shaderID, GL_INFO_LOG_LENGTH)
             logger.error(msg)
             logger.error { glGetShaderInfoLog(shaderID, len) }
             throw IllegalStateException()

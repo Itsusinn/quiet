@@ -10,10 +10,8 @@ import java.util.* // ktlint-disable no-wildcard-imports
 
 private val logger by lazy { KotlinLogging.logger { } }
 
-inline fun ShaderProgram(filepath: String) = ShaderProgram(ShaderSource(filepath))
-
 class ShaderProgram(
-    source: ShaderSource,
+    source: ShaderSource = ShaderSource(),
 ) {
     private val program by lazy { glCreateProgram() }
 
@@ -23,7 +21,11 @@ class ShaderProgram(
     fun use() = glUseProgram(program)
     fun detach() = glUseProgram(0)
 
+    private var warmed = false
+
     fun warmUp(): ShaderProgram {
+        if (warmed) return this
+        warmed = true
         vertexShader.compile()
         fragmentShader.compile()
 

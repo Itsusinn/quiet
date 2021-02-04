@@ -4,7 +4,9 @@ import java.io.File
 import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
-class ShaderSource(val filePath: String) {
+class ShaderSource(
+    val filePath: String = "assets/shaders/default.glsl"
+) {
     private val file = File(filePath)
     private var mixedSource = file.readLines()
 
