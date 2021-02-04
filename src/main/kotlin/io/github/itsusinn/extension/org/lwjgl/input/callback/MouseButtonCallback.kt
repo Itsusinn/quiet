@@ -1,4 +1,4 @@
-package io.github.itsusinn.extension.org.lwjgl.callback
+package io.github.itsusinn.extension.org.lwjgl.input.callback
 
 import io.github.itsusinn.extension.org.lwjgl.GlfwWindow
 
