@@ -77,9 +77,13 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
 
     // implementation("com.github.kotlin-graphics:assimp:4.0")
+    val kg = "com.github.kotlin-graphics"
     for (it in arrayOf("gl", "glfw", "core")) {
-        implementation("com.github.kotlin-graphics.imgui:$it:1.79")
+        implementation("$kg.imgui:$it:1.79")
     }
+
+    implementation("$kg:gln:0.5.2")
+
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-assimp")
@@ -98,5 +102,4 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
     implementation("org.joml", "joml", jomlVersion)
-    implementation("com.squareup.okio:okio:2.10.0")
 }
