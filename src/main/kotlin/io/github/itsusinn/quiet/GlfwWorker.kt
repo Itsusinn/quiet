@@ -58,8 +58,8 @@ object GlfwWorker : CoroutineScope {
     }
     private val window: GlfwWindow = createWindow(
         "demo",
-        1920,
-        1080,
+        1600,
+        900,
         "Hello World!"
     )
 
@@ -113,9 +113,12 @@ object GlfwWorker : CoroutineScope {
         var begin: Float
         var end: Float
 
-        glClearColor(0.2F, 0.2F, 0.2F, 1F)
-        glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
-
+        glClearColor(0.5F, 0.5F, 0.5F, 1F)
+        // glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
+        glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
+        // glEnable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         while (!window.shouldClose) {
             begin = now()
 
@@ -127,8 +130,8 @@ object GlfwWorker : CoroutineScope {
             val dt = end - begin
             begin = end
 
-            glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT) // clear the framebuffer
-
+            // clear the framebuffer
+            glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
             scenes.get(display)?.update(dt)
         }
     }

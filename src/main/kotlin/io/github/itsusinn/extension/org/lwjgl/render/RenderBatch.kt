@@ -8,7 +8,9 @@ import org.joml.Vector2f
 import org.joml.Vector4f
 import org.lwjgl.opengl.* // ktlint-disable no-wildcard-imports
 import org.lwjgl.opengl.GL15.* // ktlint-disable no-wildcard-imports
-import org.lwjgl.opengl.GL20.* // ktlint-disable no-wildcard-imports
+import org.lwjgl.opengl.GL20.glDisableVertexAttribArray
+import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
+import org.lwjgl.opengl.GL20.glVertexAttribPointer
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glGenVertexArrays
 import org.lwjgl.opengl.GL45.glNamedBufferSubData
@@ -31,11 +33,11 @@ class RenderBatch(
     fun addSpriteRender(spriteRender: SpriteRender) {
         if (!hasRoom()) throw IllegalStateException("Has reached the maximum number of batches")
         spriteRenders.add(spriteRender)
-        var index = (spriteRenders.size - 1) * VERTEX_SIZE * 4
-        fulfill(index, spriteRender)
+        var offset = (spriteRenders.size - 1) * VERTEX_SIZE * 4
+        fulfill(offset, spriteRender)
     }
 
-    private fun fulfill(index: Int, spriteRender: SpriteRender) {
+    private fun fulfill(offset: Int, spriteRender: SpriteRender) {
         // fulfill pos attr
         val modelTrans = spriteRender.modelTransformation::transform
         val (
@@ -61,38 +63,37 @@ class RenderBatch(
             return@run texID
         }
 
-        fill(index, rightTop, color, texCoords.rightTop, texID, modelTrans)
-        fill(index + VERTEX_SIZE, rightBottom, color, texCoords.rightBottom, texID, modelTrans)
-        fill(index + VERTEX_SIZE * 2, leftBottom, color, texCoords.leftBottom, texID, modelTrans)
-        fill(index + VERTEX_SIZE * 3, leftTop, color, texCoords.leftTop, texID, modelTrans)
+        fill(offset, rightTop, color, texCoords.rightTop, texID, modelTrans)
+        fill(offset + VERTEX_SIZE, rightBottom, color, texCoords.rightBottom, texID, modelTrans)
+        fill(offset + VERTEX_SIZE * 2, leftBottom, color, texCoords.leftBottom, texID, modelTrans)
+        fill(offset + VERTEX_SIZE * 3, leftTop, color, texCoords.leftTop, texID, modelTrans)
     }
     private fun fill(
-        index: Int,
+        offset: Int,
         vertex: Vector4f,
         color: Vector4f,
         texCoords: Vector2f,
         texID: Int,
         modelTrans: (Vector4f) -> ModelTransformation.SingletonResult,
     ) {
-        var offset = index
         val (x, y, z) = modelTrans(vertex)
         // fulfill pos attr
-        vertexSet[offset++] = x
-        vertexSet[offset++] = y
-        vertexSet[offset++] = z
+        vertexSet[offset + 0] = x
+        vertexSet[offset + 1] = y
+        vertexSet[offset + 2] = z
 
         // fulfill color attr
-        vertexSet[offset++] = color.x
-        vertexSet[offset++] = color.y
-        vertexSet[offset++] = color.z
-        vertexSet[offset++] = color.w
+        vertexSet[offset + 3] = color.x
+        vertexSet[offset + 4] = color.y
+        vertexSet[offset + 5] = color.z
+        vertexSet[offset + 6] = color.w
 
         // fulfill tex coordinate
-        vertexSet[offset++] = texCoords.x
-        vertexSet[offset++] = texCoords.y
+        vertexSet[offset + 7] = texCoords.x
+        vertexSet[offset + 8] = texCoords.y
 
         // fulfill tex id
-        vertexSet[offset] = texID.toFloat()
+        vertexSet[offset + 9] = texID.toFloat()
     }
 
     private val vaoID by lazy { glGenVertexArrays() }
@@ -154,9 +155,9 @@ class RenderBatch(
         if (!initialized.get()) init()
         // re-buffer vertex
         for ((index, spriteRender) in spriteRenders.withIndex()) {
-            if (!spriteRender.changed) break
+            if (!spriteRender.changed) continue
             spriteRender.changed = false
-            fulfill(index, spriteRender)
+            fulfill(index * VERTEX_SIZE * 4, spriteRender)
         }
 
         // rebuffer all data every frame
@@ -209,6 +210,6 @@ class RenderBatch(
         const val POS_OFFSET = 0
         const val COLOR_OFFSET = POS_SIZE_BYTES
         const val TEX_COORDS_OFFSET = COLOR_OFFSET + COLOR_SIZE_BYTES
-        const val TEX_ID_OFFSET = TEX_COORDS_OFFSET + TEX_COORDS_SIZE
+        const val TEX_ID_OFFSET = TEX_COORDS_OFFSET + TEX_COORDS_SIZE_BYTES
     }
 }

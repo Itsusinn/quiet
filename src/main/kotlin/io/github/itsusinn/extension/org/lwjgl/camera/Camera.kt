@@ -11,7 +11,7 @@ class Camera(
 
     val projectionMatrix = Matrix4f()
         .identity()
-        .perspective(1f, 16 / 9f, 1f, 400f)
+        .perspective(1f, 16 / 9f, 0f, 400f)
 
     private val _viewMatrix = Matrix4f()
 

@@ -17,8 +17,8 @@ data class Sprite(
 data class SpriteRender(
     val modelTransformation: ModelTransformation,
     val color: Vector4f = Vector4f(1f, 1f, 1f, 1f),
-    val sprite: Sprite = Sprite(),
-    val coords: Coordinate = Coordinate(),
+    var sprite: Sprite = Sprite(),
+    var coords: Coordinate = Coordinate(),
 ) {
     var changed = false
 }
@@ -67,7 +67,7 @@ class SpriteSheet(
             texture: Texture = Texture.cacheCreate(),
             spriteWidth: Int = 8,
             spriteHeight: Int = 2,
-            numSprites: Int = 16,
+            numSprites: Int = spriteHeight * spriteWidth,
             spacing: Int = 0
         ): SpriteSheet {
             return cacheInstance.getOrPut(texture.textureID) {
