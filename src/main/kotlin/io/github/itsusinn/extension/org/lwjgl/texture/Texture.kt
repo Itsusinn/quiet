@@ -1,8 +1,8 @@
 package io.github.itsusinn.extension.org.lwjgl.texture
 
-import io.github.itsusinn.extension.org.lwjgl.memory.stack
+import io.github.itsusinn.extension.org.lwjgl.memory.stack // ktlint-disable no-wildcard-imports
 import org.lwjgl.opengl.GL11.* // ktlint-disable no-wildcard-imports
-import org.lwjgl.opengl.GL11.glGenTextures
+import org.lwjgl.opengl.GL12.GL_TEXTURE_MAX_LEVEL
 import org.lwjgl.stb.STBImage.* // ktlint-disable no-wildcard-imports
 import kotlin.IllegalArgumentException
 
@@ -12,19 +12,24 @@ class Texture(
     val height: Int
 ) {
 
-    fun bind() = glBindTexture(GL_TEXTURE_2D, textureID)
+    fun bind() {
+        glBindTexture(GL_TEXTURE_2D, textureID)
+    }
 
     fun unbind() = glBindTexture(GL_TEXTURE_2D, 0)
 
     companion object {
-        private val EmptyTexParameterBuilder = {
+        val EmptyTexParameterBuilder = {
             // repeat pictures in both directions 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
             // when stretching an image, pixelate 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             // when shrinking an image ,pixelate 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+            // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4)
         }
 
         private val cache = HashMap<String, Texture>()
@@ -54,11 +59,7 @@ class Texture(
                     ?: throw IllegalArgumentException("Could not load image:$filepath")
                 when (channels[0]) {
                     3 -> glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pWeight[0], pHeight[0], 0, GL_RGB, GL_UNSIGNED_BYTE, image)
-                    4 -> glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pWeight[0], pHeight[0], 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
-                    else -> {
-                        stbi_image_free(image)
-                        throw IllegalArgumentException("Unsupported image channels")
-                    }
+                    else -> glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pWeight[0], pHeight[0], 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
                 }
                 stbi_image_free(image)
                 Texture(id, pWeight[0], pHeight[0])
