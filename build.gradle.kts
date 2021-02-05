@@ -33,15 +33,6 @@ val lwjglNatives = when (OperatingSystem.current()) {
     }
 }
 
-val skijaPlatform = when (OperatingSystem.current()) {
-    OperatingSystem.LINUX -> "linux"
-    OperatingSystem.MAC_OS -> "macos"
-    OperatingSystem.WINDOWS -> "windows"
-    else -> {
-        throw Error("Unrecognized or unsupported Operating system. Please set skijaPlatform manually")
-    }
-}
-
 group = "io.github.itsusinn.quiet"
 version = "0.1.0-rc1"
 
@@ -71,8 +62,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.4.2")
 
-    api("org.jetbrains.skija:skija-$skijaPlatform:${skijaVersion }")
-
     implementation("io.vertx:vertx-core:$vertxVersion")
 
     // jackson
@@ -83,9 +72,9 @@ dependencies {
     // logging
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("io.github.microutils:kotlin-logging-jvm:2.0.2")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
 
     // implementation("com.github.kotlin-graphics:assimp:4.0")
     for (it in arrayOf("gl", "glfw", "core")) {
