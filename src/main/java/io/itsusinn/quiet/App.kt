@@ -1,12 +1,11 @@
 package io.itsusinn.quiet
 
-import kotlinx.coroutines.coroutineScope
-
-suspend fun main() = coroutineScope {
+fun main() {
 
     // GlfwWorker.putScene("test", BaseScene())
     // GlfwWorker.displayScene("test")
     GlfwApplication.use {
-        it.run()
+        it.putScene("test", BaseScene())
+        it.start()
     }
 }

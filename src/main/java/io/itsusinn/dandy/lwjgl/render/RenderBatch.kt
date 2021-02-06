@@ -1,5 +1,7 @@
 package io.itsusinn.dandy.lwjgl.render
 
+import gln.checkError
+import imgui.DEBUG
 import io.itsusinn.dandy.lwjgl.camera.Camera
 import io.itsusinn.dandy.lwjgl.components.ModelTransformation
 import io.itsusinn.dandy.lwjgl.shader.ShaderProgram
@@ -11,8 +13,7 @@ import org.lwjgl.opengl.GL15.* // ktlint-disable no-wildcard-imports
 import org.lwjgl.opengl.GL20.glDisableVertexAttribArray
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glVertexAttribPointer
-import org.lwjgl.opengl.GL30.glBindVertexArray
-import org.lwjgl.opengl.GL30.glGenVertexArrays
+import org.lwjgl.opengl.GL30.* // ktlint-disable no-wildcard-imports
 import org.lwjgl.opengl.GL45.glNamedBufferSubData
 import java.lang.IllegalStateException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -39,7 +40,8 @@ class RenderBatch(
 
     private fun fulfill(offset: Int, spriteRender: SpriteRender) {
         // fulfill pos attr
-        val modelTrans = spriteRender.modelTransformation::transform
+        val modelTrans: (Vector4f) -> ModelTransformation.SingletonResult =
+            spriteRender.modelTransformation::transform
         val (
             rightTop,
             rightBottom,
@@ -50,10 +52,8 @@ class RenderBatch(
         val texCoords = spriteRender.sprite.texCoords
         val texID = run {
             val texture = spriteRender.sprite.texture
-            synchronized(textures) {
-                if (!textures.contains(texture)) {
-                    textures.add(texture)
-                }
+            if (!textures.contains(texture)) {
+                textures.add(texture)
             }
             var texID: Int = -1
             for ((index2, value) in textures.withIndex()) {
@@ -134,6 +134,7 @@ class RenderBatch(
             }
             indexSet
         }
+
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW)
 
@@ -161,6 +162,7 @@ class RenderBatch(
         }
 
         // rebuffer all data every frame
+        if (DEBUG) { checkError("before re-buffer data") }
         glNamedBufferSubData(vboID, 0L, vertexSet)
 
         // Use shader
@@ -192,6 +194,7 @@ class RenderBatch(
             texture.unbind()
         }
         shaderProgram.detach()
+        if (DEBUG) { checkError("draw elements") }
     }
     private companion object {
         const val POS_SIZE = 3

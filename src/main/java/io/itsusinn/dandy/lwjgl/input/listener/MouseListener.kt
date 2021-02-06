@@ -51,7 +51,7 @@ object MouseListener : CoroutineScope by SingleThreadCoroutineScope("glfw-input"
      *  **不要主动调用此方法.**
      *  **此方法应当被注册到[GlfwWindow]的回调中.**
      */
-    fun mouseButtonCallback(
+    fun nativeMouseButtonCallback(
         button: Int,
         action: Int,
         mods: Int
@@ -69,7 +69,7 @@ object MouseListener : CoroutineScope by SingleThreadCoroutineScope("glfw-input"
      *  **不要主动调用此方法.**
      *  **此方法应当被注册到[GlfwWindow]的回调中.**
      */
-    fun mouseScrollCallback(
+    fun nativeMouseScrollCallback(
         offset: Vec2d
     ) {
         scrollX = offset.x

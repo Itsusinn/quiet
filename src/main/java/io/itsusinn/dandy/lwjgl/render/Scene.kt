@@ -4,19 +4,18 @@ package io.itsusinn.dandy.lwjgl.render
 import io.itsusinn.dandy.lwjgl.camera.Camera
 import io.itsusinn.dandy.lwjgl.components.GameObject
 import io.itsusinn.dandy.lwjgl.components.SpriteComponent
-import kotlinx.coroutines.CoroutineScope
 import java.util.ArrayList
 
-interface IScene : CoroutineScope {
+interface IScene {
     val camera: Camera
     val gameObjects: MutableList<GameObject>
     val renderer: Renderer
 
-    suspend fun init()
+    fun init()
 
-    suspend fun start()
+    fun start()
 
-    suspend fun update(dt: Float)
+    fun update(dt: Float)
 }
 
 abstract class AbstractScene(
@@ -40,24 +39,24 @@ abstract class AbstractScene(
         }
     }
 
-    final override suspend fun init() {
+    final override fun init() {
         for (gameObject in gameObjects) {
             gameObject.init()
         }
         onInit()
         renderer.init()
     }
-    abstract suspend fun onInit()
+    abstract fun onInit()
 
-    final override suspend fun start() {
+    final override fun start() {
         for (gameObject in gameObjects) {
             gameObject.start()
         }
         onStart()
     }
-    abstract suspend fun onStart()
+    abstract fun onStart()
 
-    final override suspend fun update(dt: Float) {
+    final override fun update(dt: Float) {
         for (gameObject in gameObjects) {
             gameObject.update(dt)
         }
@@ -65,5 +64,5 @@ abstract class AbstractScene(
         onUpdate(dt)
     }
 
-    abstract suspend fun onUpdate(dt: Float)
+    abstract fun onUpdate(dt: Float)
 }

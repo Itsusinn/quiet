@@ -1,7 +1,6 @@
 package io.itsusinn.quiet
 
 import io.itsusinn.dandy.lwjgl.components.GameObject
-import io.itsusinn.dandy.lwjgl.components.ModelTransformation
 import io.itsusinn.dandy.lwjgl.components.SpriteComponent
 import io.itsusinn.dandy.lwjgl.render.AbstractScene
 import io.itsusinn.dandy.lwjgl.render.Sprite
@@ -20,7 +19,7 @@ class BaseScene() : AbstractScene(), CoroutineScope {
     init {
         camera.eye.set(800f, 450f, 850f)
     }
-    override suspend fun onInit() {
+    override fun onInit() {
 
         val spriteSheet: SpriteSheet = SpriteSheet
             .cacheCreate(
@@ -83,11 +82,11 @@ class BaseScene() : AbstractScene(), CoroutineScope {
                     TexCoordinate(1f, 0f, 1f, 0f)
                 )
             )
-            launch {}
+            // launch {}
         }
     }
 
-    override suspend fun onStart() {}
+    override fun onStart() {}
 
-    override suspend fun onUpdate(dt: Float) {}
+    override fun onUpdate(dt: Float) {}
 }

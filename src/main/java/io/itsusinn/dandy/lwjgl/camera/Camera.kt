@@ -1,6 +1,6 @@
 package io.itsusinn.dandy.lwjgl.camera
 
-import kotlinx.coroutines.runBlocking
+import io.itsusinn.dandy.lwjgl.input.listener.KeyboardListener.keyboard
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -11,24 +11,22 @@ class Camera(
     val up: Vector3f = Vector3f(0f, 1f, 0f)
 ) {
     init {
-        runBlocking {
-//            keyboard { keys ->
-//                if (keys[GLFW.GLFW_KEY_W]) {
-//                    eye.add(0f, 0f, -10f)
-//                } else if (keys[GLFW.GLFW_KEY_S]) {
-//                    eye.add(0f, 0f, 10f)
-//                }
-//                if (keys[GLFW.GLFW_KEY_A]) {
-//                    eye.add(-10f, 0f, 0f)
-//                } else if (keys[GLFW.GLFW_KEY_D]) {
-//                    eye.add(10f, 0f, 0f)
-//                }
-//                if (keys[GLFW.GLFW_KEY_UP]) {
-//                    eye.add(0f, 10f, 0f)
-//                } else if (keys[GLFW.GLFW_KEY_DOWN]) {
-//                    eye.add(0f, -10f, 0f)
-//                }
-//            }
+        keyboard { keys ->
+            if (keys[GLFW.GLFW_KEY_W]) {
+                eye.add(0f, 0f, -10f)
+            } else if (keys[GLFW.GLFW_KEY_S]) {
+                eye.add(0f, 0f, 10f)
+            }
+            if (keys[GLFW.GLFW_KEY_A]) {
+                eye.add(-10f, 0f, 0f)
+            } else if (keys[GLFW.GLFW_KEY_D]) {
+                eye.add(10f, 0f, 0f)
+            }
+            if (keys[GLFW.GLFW_KEY_UP]) {
+                eye.add(0f, 10f, 0f)
+            } else if (keys[GLFW.GLFW_KEY_DOWN]) {
+                eye.add(0f, -10f, 0f)
+            }
         }
     }
 

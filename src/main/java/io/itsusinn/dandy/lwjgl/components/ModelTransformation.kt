@@ -36,7 +36,7 @@ data class ModelTransformation(
      * **必须使用自动解构获取返回值**
      */
     fun transform(v: Vector4f): SingletonResult = synchronized(cacheResult) call@{
-        transformation.identity()
+        transformation
             .translate(translation)
             .rotate(rotation)
             .scale(scaling)

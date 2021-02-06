@@ -2,6 +2,7 @@ package io.itsusinn.dandy.lwjgl.texture
 
 import io.itsusinn.dandy.lwjgl.memory.stack
 import org.lwjgl.opengl.GL11.* // ktlint-disable no-wildcard-imports
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.stb.STBImage.* // ktlint-disable no-wildcard-imports
 import kotlin.IllegalArgumentException
 
@@ -61,8 +62,24 @@ class Texture(
                     else -> glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pWeight[0], pHeight[0], 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
                 }
                 stbi_image_free(image)
+                glBindTexture(GL_TEXTURE_2D, 0)
                 Texture(id, pWeight[0], pHeight[0])
             }
+        }
+
+        fun buffer(
+            weight: Int,
+            height: Int,
+        ): Texture {
+            val id = glGenTextures()
+            glBindTexture(GL_TEXTURE_2D, id)
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+            glTexImage2D(GL11C.GL_TEXTURE_2D, 0, GL_RGB, weight, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0)
+            glBindTexture(GL_TEXTURE_2D, 0)
+            return Texture(id, weight, height)
         }
     }
 }

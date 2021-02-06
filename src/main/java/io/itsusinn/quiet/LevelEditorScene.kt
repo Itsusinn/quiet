@@ -7,11 +7,10 @@ import io.itsusinn.dandy.lwjgl.shader.ShaderProgram
 import io.itsusinn.dandy.lwjgl.texture.Texture
 import mu.KotlinLogging
 import org.lwjgl.opengl.GL30.* // ktlint-disable no-wildcard-imports
-import kotlin.coroutines.CoroutineContext
 
 private val logger = KotlinLogging.logger { }
 
-class LevelEditorScene(override val coroutineContext: CoroutineContext) : AbstractScene() {
+class LevelEditorScene() : AbstractScene() {
 
     val shaderProgram = ShaderProgram()
 
@@ -43,7 +42,7 @@ class LevelEditorScene(override val coroutineContext: CoroutineContext) : Abstra
 
     private val texture = Texture.cacheCreate("assets/images/test.jpg")
 
-    override suspend fun onInit() {
+    override fun onInit() {
 
         shaderProgram.warmUp()
 
@@ -106,10 +105,10 @@ class LevelEditorScene(override val coroutineContext: CoroutineContext) : Abstra
         glEnableVertexAttribArray(2)
     }
 
-    override suspend fun onStart() {
+    override fun onStart() {
     }
 
-    override suspend fun onUpdate(dt: Float) {
+    override fun onUpdate(dt: Float) {
         // bind shader program
         shaderProgram.use()
         shaderProgram.uploadTexture("tex", 0)

@@ -1,6 +1,5 @@
 package io.itsusinn.dandy.lwjgl.input.callback
 
-
 fun interface CursorPosCallback {
     /**
      * Will be called when the cursor is moved.
